@@ -62,20 +62,20 @@ We don’t just participate in competitions —
 <tr>
 <td align="center">
 <img src="assets/team/taha.jpg" width="120"/><br/>
-<b>Mohammad Taha Batumi</b><br/>
+<b>Taha Batumi</b><br/>
 🚀 <i>Team Lead</i><br/>
 React Native Developer
 </td>
 
 <td align="center">
 <img src="assets/team/reza.jpg" width="120"/><br/>
-<b>Mohammad Reza Farajpour</b><br/>
+<b>Reza Farajpour</b><br/>
 ⚛️ React Native Developer
 </td>
 
 <td align="center">
 <img src="assets/team/ali.jpg" width="120"/><br/>
-<b>Amiri Ali Hasanzadeh</b><br/>
+<b>Amir Ali Hasanzadeh</b><br/>
 ⚛️ React Native Developer
 </td>
 
