@@ -1,5 +1,5 @@
 # 🎬 NeuroCraft
-## 🚀 AI‑Powered Digital Content & App Development Team
+## 🚀 AI‑Powered Digital Content & Mobile App Development Team
 
 > **"We don’t just build apps — we craft intelligence."**
 
@@ -9,26 +9,37 @@
 **The First AI‑Based Digital Content Creation Event**  
 Organized by **Basij Danesh‑Amoozi** ✌️  
 
-This event challenges teams to create:
-- 📱 Applications
+This competition focuses on creating:
+- 📱 Mobile Applications
 - 🎮 Games
 - 🎨 Digital Content  
-powered by **Artificial Intelligence**.
 
-We are here to push boundaries and shape the digital future. 🔥
+powered by **Artificial Intelligence**, innovation, and creativity.
+
+We are here to build meaningful products and shape the digital future. 🔥
+
+---
+
+## 🏫 Academic Affiliation
+This team is proudly formed and supported by:
+
+**Nemouneh Dolati – Mandegar Intelligent Technical High School  
+Imam Sadegh (AS)**
+
+> A forward‑thinking educational environment focused on technology, innovation, and future‑ready skills.
 
 ---
 
 ## 🧠 Who We Are
-**NeuroCraft** is a forward‑thinking development team focused on building modern, intelligent, and impactful digital products.
+**NeuroCraft** is a young, ambitious, and technically driven team specializing in:
 
-Our core strengths:
-- Mobile App Development
-- Artificial Intelligence
-- Prompt Engineering
-- Clean Architecture & UX‑Driven Design
+- Mobile App Development (React Native)
+- Artificial Intelligence & Prompt Engineering
+- Clean Architecture & Scalable Design
+- User‑Focused Digital Experiences
 
-We don’t just participate — **we compete to lead**.
+We don’t just participate in competitions —  
+**we aim to set the standard.**
 
 ---
 
@@ -37,7 +48,7 @@ We don’t just participate — **we compete to lead**.
 - 📘 TypeScript
 - 🤖 Artificial Intelligence
 - 🧠 Prompt Engineering
-- 🎨 Modern UI / UX Design
+- 🎨 Modern UI / UX
 - ☁️ Scalable & Cloud‑Ready Architecture
 
 ---
@@ -67,7 +78,7 @@ React Native Developer
 
 <td align="center">
 <img src="assets/team/mehdi.jpg" width="120"/><br/>
-<b>Mohamm</b><br/>
+<b>Mohammad Mahdi Salimi Dana</b><br/>
 🧠 Prompt Engineer & AI Developer
 </td>
 </tr>
@@ -77,19 +88,19 @@ React Native Developer
 
 ## 🌟 Our Vision
 We believe the future belongs to those who:
-- **Create**
-- **Innovate**
-- **Leverage AI intelligently**
+- **Build with purpose**
+- **Think beyond the obvious**
+- **Use AI responsibly and creatively**
 
-NeuroCraft exists to turn ideas into intelligent digital products.
+NeuroCraft exists to turn ideas into intelligent, impactful digital products.
 
 ---
 
-## 🔥 Project Sta
-✅ Team Formed  
+## 🔥 Current Status
+✅ Team Assembled  
 ✅ Technology Stack Ready  
 ✅ AI‑Driven Vision Defined  
-✅ Ready to Build & Compete 🚀
+✅ Ready to Build, Compete, and Win 🚀
 
 ---
 
