@@ -19,18 +19,17 @@ powered by **Artificial Intelligence**, creativity, and modern technology.
 We are here to build impactful digital products and shape the future. 🔥
 
 ---
-
 ## 🏫 Academic & Educational Affiliation
 This team is proudly formed and supported by:
 
-**Nemouneh Dolati – Mandegar Intelligent Technical High School  
+**Nemouneh Dolati – Mandegar Intelligent Art School  
 Imam Sadegh (AS)**  
-*(from the esteemed Modares School of Smart Arts Mandegar Imam Sadegh  
+from the esteemed **Modares School of Smart Arts Mandegar Imam Sadegh  
 
 In collaboration with the educational institute:
 
 **Pouyeshgaran Danesh & Maharat Sadra Institute**  
-*A center focused on developing advanced technical, digital, and future‑ready skills.*
+*A professional institute dedicated to developing advanced technical, digital, and future‑ready skills.*
 
 ---
 
