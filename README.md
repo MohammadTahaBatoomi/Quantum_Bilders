@@ -9,37 +9,41 @@
 **The First AI‑Based Digital Content Creation Event**  
 Organized by **Basij Danesh‑Amoozi** ✌️  
 
-This competition focuses on creating:
+This event challenges participants to create:
 - 📱 Mobile Applications
 - 🎮 Games
 - 🎨 Digital Content  
 
-powered by **Artificial Intelligence**, innovation, and creativity.
+powered by **Artificial Intelligence**, creativity, and modern technology.
 
-We are here to build meaningful products and shape the digital future. 🔥
+We are here to build impactful digital products and shape the future. 🔥
 
 ---
 
-## 🏫 Academic Affiliation
+## 🏫 Academic & Educational Affiliation
 This team is proudly formed and supported by:
 
 **Nemouneh Dolati – Mandegar Intelligent Technical High School  
-Imam Sadegh (AS)**
+Imam Sadegh (AS)**  
+*(from the esteemed Modares School of Smart Arts Mandegar Imam Sadegh  
 
-> A forward‑thinking educational environment focused on technology, innovation, and future‑ready skills.
+In collaboration with the educational institute:
+
+**Pouyeshgaran Danesh & Maharat Sadra Institute**  
+*A center focused on developing advanced technical, digital, and future‑ready skills.*
 
 ---
 
 ## 🧠 Who We Are
-**NeuroCraft** is a young, ambitious, and technically driven team specializing in:
+**NeuroCraft** is a motivated and forward‑thinking team specializing in:
 
 - Mobile App Development (React Native)
 - Artificial Intelligence & Prompt Engineering
-- Clean Architecture & Scalable Design
-- User‑Focused Digital Experiences
+- Clean Architecture & Scalable Systems
+- User‑Centered Digital Experiences
 
 We don’t just participate in competitions —  
-**we aim to set the standard.**
+**we aim to lead, innovate, and inspire.**
 
 ---
 
@@ -48,7 +52,7 @@ We don’t just participate in competitions —
 - 📘 TypeScript
 - 🤖 Artificial Intelligence
 - 🧠 Prompt Engineering
-- 🎨 Modern UI / UX
+- 🎨 Modern UI / UX Design
 - ☁️ Scalable & Cloud‑Ready Architecture
 
 ---
@@ -89,15 +93,16 @@ React Native Developer
 ## 🌟 Our Vision
 We believe the future belongs to those who:
 - **Build with purpose**
-- **Think beyond the obvious**
-- **Use AI responsibly and creatively**
+- **Think deeply and creatively**
+- **Use AI responsibly and intelligently**
 
-NeuroCraft exists to turn ideas into intelligent, impactful digital products.
+NeuroCraft exists to transform ideas into intelligent, real‑world digital solutions.
 
 ---
 
 ## 🔥 Current Status
 ✅ Team Assembled  
+✅ Educational & Technical Support Established  
 ✅ Technology Stack Ready  
 ✅ AI‑Driven Vision Defined  
 ✅ Ready to Build, Compete, and Win 🚀
