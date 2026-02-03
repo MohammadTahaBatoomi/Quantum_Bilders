@@ -81,7 +81,7 @@ React Native Developer
 
 <td align="center">
 <img src="assets/team/mehdi.jpg" width="120"/><br/>
-<b>Mohammad Mahdi Salimi Dana</b><br/>
+<b>Mahdi Salimi Dana</b><br/>
 🧠 Prompt Engineer & AI Developer
 </td>
 </tr>
