@@ -11,6 +11,11 @@ export const getTheme = (mode: ThemeMode) => {
     title: isDark ? "#ffffff" : "#020617",
     subtitle: isDark ? "#cbd5f5" : "#475569",
     primary: "#00aad2",
+    text: isDark ? "#e2e8f0" : "#0f172a",
+    muted: isDark ? "#94a3b8" : "#64748b",
+    card: isDark ? "#0f172a" : "#ffffff",
+    border: isDark ? "#1e293b" : "#e2e8f0",
+    error: isDark ? "#fca5a5" : "#dc2626",
     toggleBg: isDark
       ? "rgba(255,255,255,0.12)"
       : "rgba(0,0,0,0.06)",

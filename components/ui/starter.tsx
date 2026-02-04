@@ -1,11 +1,9 @@
 import { View, Text, StyleSheet, Image, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { sharedStyles, useTheme } from "./theme";
 
 export default function Starter() {
-  const { colors, text, toggle, mode } = useTheme();
-  const isDark = mode === "dark";
+  const { colors, text } = useTheme();
   const router = useRouter();
 
   return (
@@ -15,18 +13,6 @@ export default function Starter() {
         { backgroundColor: colors.background },
       ]}
     >
-      <Pressable
-        style={[styles.themeToggle, { backgroundColor: colors.toggleBg }]}
-        onPress={toggle}
-        hitSlop={10}
-      >
-        <Ionicons
-          name={isDark ? "sunny" : "moon"}
-          size={20}
-          color={colors.icon}
-        />
-      </Pressable>
-
       <Image
         source={require("../../assets/images/image (1).png")}
         style={styles.logo}
@@ -59,15 +45,6 @@ export default function Starter() {
 }
 
 const styles = StyleSheet.create({
-  themeToggle: {
-    position: "absolute",
-    top: 56,
-    right: 20,
-    padding: 10,
-    borderRadius: 999,
-    opacity: 0.65,
-  },
-
   logo: {
     width: 350,
     height: 350,
