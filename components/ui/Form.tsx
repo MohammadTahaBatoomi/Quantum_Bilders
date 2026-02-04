@@ -71,9 +71,7 @@ const Form = () => {
           اطلاعات فردی
         </Text>
 
-        <Text style={[styles.hint, { color: colors.muted }]}>
-          لطفاً اطلاعات را دقیق و به فارسی وارد کنید. تمام فیلدها اجباری هستند.
-        </Text>
+
 
         <TextInput
           value={fullName}
@@ -140,6 +138,10 @@ const Form = () => {
           </Text>
         )}
 
+         <Text style={[styles.hint, { color: colors.muted }]}>
+          لطفاً اطلاعات را دقیق و به فارسی وارد کنید. تمام فیلدها اجباری هستند.
+        </Text> 
+
         <Pressable
           style={({ pressed }) => [
             styles.submitButton,
@@ -180,6 +182,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     marginBottom: 16,
+    textAlign: "right",
   },
   errorText: {
     fontSize: 12,
@@ -190,7 +193,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     width: "100%",
-    paddingVertical: 16,
+    paddingVertical: 8,
     borderRadius: 14,
     alignItems: "center",
     marginTop: 8,
