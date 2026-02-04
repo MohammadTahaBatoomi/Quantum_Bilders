@@ -9,8 +9,17 @@ import {
   Image,
   Pressable,
   Alert,
+  Modal,
 } from "react-native";
 import { sharedStyles, useTheme } from "./theme";
+
+const FIELDS = [
+  "ریاضی فیزیک",
+  "علوم تجربی",
+  "علوم انسانی",
+  "شبکه و نرم افزار فنی حرفه ای",
+  "مکانیک فنی حرفه ای "
+];
 
 const Form = () => {
   const { colors, text } = useTheme();
@@ -18,23 +27,29 @@ const Form = () => {
   const [fullName, setFullName] = useState("");
   const [fieldOfStudy, setFieldOfStudy] = useState("");
   const [phone, setPhone] = useState("");
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showFieldModal, setShowFieldModal] = useState(false);
+
+  const [errors, setErrors] = useState<{
+    fullName?: string;
+    fieldOfStudy?: string;
+    phone?: string;
+  }>({});
 
   const validate = () => {
-    const nextErrors: { [key: string]: string } = {};
+    const nextErrors: typeof errors = {};
 
     if (!fullName.trim()) {
-      nextErrors.fullName = "لطفاً نام و نام خانوادگی را وارد کنید.";
+      nextErrors.fullName = "نام و نام خانوادگی الزامی است.";
     }
 
-    if (!fieldOfStudy.trim()) {
-      nextErrors.fieldOfStudy = "لطفاً رشته تحصیلی را وارد کنید.";
+    if (!fieldOfStudy) {
+      nextErrors.fieldOfStudy = "لطفاً رشته تحصیلی را انتخاب کنید.";
     }
 
     if (!phone.trim()) {
-      nextErrors.phone = "لطفاً شماره همراه را وارد کنید.";
-    } else if (!/^[0-9]+$/.test(phone) || phone.length !== 11) {
-      nextErrors.phone = "شماره همراه باید ۱۱ رقمی و فقط عدد باشد.";
+      nextErrors.phone = "شماره همراه الزامی است.";
+    } else if (!/^09\d{9}$/.test(phone)) {
+      nextErrors.phone = "شماره باید ۱۱ رقم و با 09 شروع شود.";
     }
 
     setErrors(nextErrors);
@@ -42,9 +57,9 @@ const Form = () => {
   };
 
   const onSubmit = () => {
-    if (validate()) {
-      Alert.alert("ثبت شد", "اطلاعات شما با موفقیت ثبت شد.");
-    }
+    if (!validate()) return;
+
+    Alert.alert("✅ ثبت شد", "اطلاعات با موفقیت ذخیره شد.");
   };
 
   return (
@@ -71,8 +86,6 @@ const Form = () => {
           اطلاعات فردی
         </Text>
 
-
-
         <TextInput
           value={fullName}
           onChangeText={setFullName}
@@ -94,32 +107,14 @@ const Form = () => {
           </Text>
         )}
 
-        <TextInput
-          value={fieldOfStudy}
-          onChangeText={setFieldOfStudy}
-          placeholder="رشته تحصیلی"
-          placeholderTextColor={colors.muted}
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.card,
-              color: colors.text,
-              borderColor: errors.fieldOfStudy ? colors.error : colors.border,
-            },
-          ]}
-          textAlign="right"
-        />
-        {!!errors.fieldOfStudy && (
-          <Text style={[styles.errorText, { color: colors.error }]}>
-            {errors.fieldOfStudy}
-          </Text>
-        )}
 
         <TextInput
           value={phone}
           onChangeText={setPhone}
           placeholder="شماره همراه"
           placeholderTextColor={colors.muted}
+          keyboardType="phone-pad"
+          maxLength={11}
           style={[
             styles.input,
             {
@@ -128,8 +123,6 @@ const Form = () => {
               borderColor: errors.phone ? colors.error : colors.border,
             },
           ]}
-          keyboardType="phone-pad"
-          maxLength={11}
           textAlign="right"
         />
         {!!errors.phone && (
@@ -138,23 +131,93 @@ const Form = () => {
           </Text>
         )}
 
-         <Text style={[styles.hint, { color: colors.muted }]}>
-          لطفاً اطلاعات را دقیق و به فارسی وارد کنید. تمام فیلدها اجباری هستند.
-        </Text> 
-
         <Pressable
+          onPress={() => setShowFieldModal(true)}
+          style={[
+            styles.selectBox,
+            {
+              backgroundColor: colors.card,
+              borderColor: errors.fieldOfStudy
+                ? colors.error
+                : colors.border,
+            },
+          ]}
+        >
+          <Text
+            style={{
+              color: fieldOfStudy ? colors.text : colors.muted,
+              fontSize: 16,
+            }}
+          >
+            {fieldOfStudy || "انتخاب رشته تحصیلی"}
+          </Text>
+        </Pressable>
+        {!!errors.fieldOfStudy && (
+          <Text style={[styles.errorText, { color: colors.error }]}>
+            {errors.fieldOfStudy}
+          </Text>
+        )}
+
+
+        <Text style={[styles.hint, { color: colors.muted }]}>
+          لطفاً تمام اطلاعات را به‌درستی وارد کنید.
+        </Text>
+
+        {/* Submit */}
+        <Pressable
+          onPress={onSubmit}
           style={({ pressed }) => [
             styles.submitButton,
             {
               backgroundColor: colors.primary,
-              transform: [{ scale: pressed ? 0.98 : 1 }],
+              transform: [{ scale: pressed ? 0.97 : 1 }],
             },
           ]}
-          onPress={onSubmit}
         >
           <Text style={styles.submitText}>ثبت اطلاعات</Text>
         </Pressable>
       </View>
+
+      {/* Modal */}
+      <Modal
+        visible={showFieldModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowFieldModal(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setShowFieldModal(false)}
+        >
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.card },
+            ]}
+          >
+            {FIELDS.map((item) => (
+              <Pressable
+                key={item}
+                style={styles.modalItem}
+                onPress={() => {
+                  setFieldOfStudy(item);
+                  setShowFieldModal(false);
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontSize: 16,
+                    textAlign: "right",
+                  }}
+                >
+                  {item}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -163,16 +226,9 @@ export default Form;
 
 const styles = StyleSheet.create({
   logo: {
-    width: 260,
-    height: 260,
+    width: 240,
+    height: 240,
     marginBottom: 24,
-  },
-  hint: {
-    fontSize: 13,
-    lineHeight: 20,
-    textAlign: "right",
-    width: "100%",
-    marginBottom: 16,
   },
   input: {
     width: "100%",
@@ -184,24 +240,51 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: "right",
   },
+  selectBox: {
+    width: "100%",
+    height: 56,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    justifyContent: "center",
+    marginBottom: 16,
+  },
   errorText: {
+    width: "100%",
     fontSize: 12,
     marginTop: -10,
     marginBottom: 10,
-    width: "100%",
     textAlign: "right",
+  },
+  hint: {
+    fontSize: 13,
+    textAlign: "right",
+    width: "100%",
+    marginBottom: 16,
   },
   submitButton: {
     width: "100%",
-    paddingVertical: 8,
+    paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
-    marginTop: 8,
   },
   submitText: {
-    color: "#ffffff",
+    color: "#fff",
     fontSize: 16,
     fontWeight: "800",
-    letterSpacing: 0.3,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  modalContent: {
+    borderRadius: 16,
+    paddingVertical: 8,
+  },
+  modalItem: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
 });
