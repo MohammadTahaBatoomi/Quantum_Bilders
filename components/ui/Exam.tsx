@@ -82,7 +82,7 @@ const Exam = () => {
           resizeMode="contain"
         />
         <View style={styles.headerText}>
-          <Text style={text.title}>آزمون</Text>
+          <Text style={text.title}>ازمون استعداد یابی </Text>
           <Text style={[styles.subTitle, { color: colors.muted }]}>
             {examData.instruction}
           </Text>
@@ -96,7 +96,7 @@ const Exam = () => {
               سوال {index + 1} از {total}
             </Text>
 
-            <Text style={[styles.question, { color: colors.title }]}>
+            <Text style={[styles.question, { color: colors.title}]}>
               {current.question}
             </Text>
 
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     marginBottom: 12,
-    minHeight: 56,
+    height: 64,
     justifyContent: "center",
   },
   optionText: {
