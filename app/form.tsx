@@ -1,14 +1,14 @@
-import { View } from "react-native";
 import React from "react";
-import Starter from "../components/ui/starter";
+import { View } from "react-native";
+import Form from "../components/ui/Form";
 import { sharedStyles } from "../components/ui/theme";
 
-const Index = () => {
+const FormScreen = () => {
   return (
     <View style={sharedStyles.screen}>
-      <Starter />
+      <Form />
     </View>
   );
 };
 
-export default Index;
+export default FormScreen;

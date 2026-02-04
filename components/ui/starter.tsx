@@ -1,40 +1,23 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  Pressable,
-  useColorScheme,
-} from "react-native";
-import { useState } from "react";
+import { View, Text, StyleSheet, Image, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { sharedStyles, useTheme } from "./theme";
 
 export default function Starter() {
-  const systemTheme = useColorScheme();
-  const [theme, setTheme] = useState<"light" | "dark">(
-    systemTheme ?? "dark"
-  );
-
-  const isDark = theme === "dark";
+  const { colors, text, toggle, mode } = useTheme();
+  const isDark = mode === "dark";
   const router = useRouter();
 
-  const colors = {
-    background: isDark ? "#020617" : "#f8fafc",
-    title: isDark ? "#ffffff" : "#020617",
-    subtitle: isDark ? "#cbd5f5" : "#475569",
-    primary: "#00aad2",
-    toggleBg: isDark
-      ? "rgba(255,255,255,0.12)"
-      : "rgba(0,0,0,0.06)",
-    icon: isDark ? "#facc15" : "#0f172a",
-  };
-
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      style={[
+        sharedStyles.centered,
+        { backgroundColor: colors.background },
+      ]}
+    >
       <Pressable
         style={[styles.themeToggle, { backgroundColor: colors.toggleBg }]}
-        onPress={() => setTheme(isDark ? "light" : "dark")}
+        onPress={toggle}
         hitSlop={10}
       >
         <Ionicons
@@ -45,16 +28,16 @@ export default function Starter() {
       </Pressable>
 
       <Image
-        source={require("../assets/images/image (1).png")}
+        source={require("../../assets/images/image (1).png")}
         style={styles.logo}
         resizeMode="contain"
       />
 
-      <Text style={[styles.title, { color: colors.title }]}>
+      <Text style={text.title}>
         آینده‌ات از همین‌جا شروع میشه 🚀
       </Text>
 
-      <Text style={[styles.subtitle, { color: colors.subtitle }]}>
+      <Text style={text.subtitle}>
         آماده‌ای قدم بعدی رو هوشمندانه برداری؟
       </Text>
 
@@ -67,7 +50,7 @@ export default function Starter() {
             transform: [{ scale: pressed ? 0.97 : 1 }],
           },
         ]}
-        onPress={() => router.push("/_sitemap")}
+        onPress={() => router.push("/form")}
       >
         <Text style={styles.buttonText}>بزن بریم 🔥</Text>
       </Pressable>
@@ -76,13 +59,6 @@ export default function Starter() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-
   themeToggle: {
     position: "absolute",
     top: 56,
@@ -96,20 +72,6 @@ const styles = StyleSheet.create({
     width: 350,
     height: 350,
     marginBottom: 40,
-  },
-
-  title: {
-    fontSize: 28,
-    fontWeight: "900",
-    marginBottom: 12,
-    textAlign: "center",
-  },
-
-  subtitle: {
-    fontSize: 15,
-    textAlign: "center",
-    marginBottom: 48,
-    lineHeight: 24,
   },
 
   button: {
