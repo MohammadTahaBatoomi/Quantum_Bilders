@@ -164,7 +164,7 @@ const Form = () => {
 
 
         <Text style={[styles.hint, { color: colors.muted }]}>
-          لطفاً تمام اطلاعات     textAlign: "right",
+          لطفاً تمام اطلاعات  
 را به‌درستی وارد کنید.
         </Text>
 
