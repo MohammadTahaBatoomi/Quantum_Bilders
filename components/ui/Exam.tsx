@@ -83,11 +83,9 @@ const Exam = () => {
         />
         <View style={styles.headerText}>
           <Text style={text.title}>ازمون استعداد یابی </Text>
-          <Text style={[styles.subTitle, { color: colors.muted }]}>
-            {examData.instruction}
-          </Text>
         </View>
       </View>
+
 
       {!!current && (
         <>
@@ -99,6 +97,10 @@ const Exam = () => {
             <Text style={[styles.question, { color: colors.title}]}>
               {current.question}
             </Text>
+
+            <Text style={[styles.subTitle, { color: colors.muted }]}>
+            {examData.instruction}
+          </Text>
 
             <View style={styles.optionsGrid}>
               {optionList.map(([key, label]) => {
@@ -186,8 +188,8 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row-reverse",
     alignItems: "center",
-    marginBottom: SPACING,
-    gap: 12,
+    justifyContent : "center",
+    marginRight:40
   },
   headerText: {
     flex: 1,
@@ -196,12 +198,13 @@ const styles = StyleSheet.create({
   logo: {
     width: 72,
     height: 72,
+    marginBottom: 10
   },
   subTitle: {
     fontSize: 12,
     lineHeight: 18,
     textAlign: "right",
-    marginTop: 4,
+    marginBottom: 15
   },
   card: {
     width: "100%",
