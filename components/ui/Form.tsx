@@ -162,7 +162,8 @@ const Form = () => {
 
 
         <Text style={[styles.hint, { color: colors.muted }]}>
-          لطفاً تمام اطلاعات را به‌درستی وارد کنید.
+          لطفاً تمام اطلاعات     textAlign: "right",
+را به‌درستی وارد کنید.
         </Text>
 
         {/* Submit */}
@@ -250,6 +251,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     justifyContent: "center",
     marginBottom: 16,
+    textAlign: "right",
   },
   errorText: {
     width: "100%",
