@@ -11,6 +11,7 @@ import {
   Alert,
   Modal,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { sharedStyles, useTheme } from "./theme";
 
 const FIELDS = [
@@ -23,6 +24,7 @@ const FIELDS = [
 
 const Form = () => {
   const { colors, text } = useTheme();
+  const router = useRouter();
 
   const [fullName, setFullName] = useState("");
   const [fieldOfStudy, setFieldOfStudy] = useState("");
@@ -59,7 +61,7 @@ const Form = () => {
   const onSubmit = () => {
     if (!validate()) return;
 
-    Alert.alert("✅ ثبت شد", "اطلاعات با موفقیت ذخیره شد.");
+    router.push("/exam");
   };
 
   return (
