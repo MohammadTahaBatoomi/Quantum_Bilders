@@ -88,21 +88,23 @@ const Form = () => {
           اطلاعات فردی
         </Text>
 
-        <TextInput
-          value={fullName}
-          onChangeText={setFullName}
-          placeholder="نام و نام خانوادگی"
-          placeholderTextColor={colors.muted}
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.card,
-              color: colors.text,
-              borderColor: errors.fullName ? colors.error : colors.border,
-            },
-          ]}
-          textAlign="right"
-        />
+      <TextInput
+        autoFocus
+        value={fullName}
+        onChangeText={setFullName}
+        placeholder="نام و نام خانوادگی"
+        placeholderTextColor={colors.muted}
+        style={[
+          styles.input,
+          {
+            backgroundColor: colors.card,
+            color: colors.text,
+            borderColor: errors.fullName ? colors.error : colors.border,
+          },
+        ]}
+        textAlign="right"
+      />
+      
         {!!errors.fullName && (
           <Text style={[styles.errorText, { color: colors.error }]}>
             {errors.fullName}
