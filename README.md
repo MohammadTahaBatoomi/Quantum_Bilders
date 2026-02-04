@@ -70,7 +70,7 @@ React Native Developer
 <td align="center">
 <img src="assets/team/reza.jpg" width="120"/><br/>
 <b>Reza Farajpour</b><br/>
-⚛️ React Native Developer
+    Network Enginier
 </td>
 
 <td align="center">
