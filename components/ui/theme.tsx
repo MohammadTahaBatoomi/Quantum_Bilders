@@ -20,6 +20,7 @@ export const getTheme = (mode: ThemeMode) => {
       ? "rgba(255,255,255,0.12)"
       : "rgba(0,0,0,0.06)",
     icon: isDark ? "#facc15" : "#0f172a",
+    primarySoft: isDark ? "rgba(56,189,248,0.18)" : "rgba(14,165,233,0.12)",
   };
 
   const text = {

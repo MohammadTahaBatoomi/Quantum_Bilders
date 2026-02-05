@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { SafeAreaView } from "react-native";
 import { Stack } from "expo-router";
 import { ThemeProvider, sharedStyles } from "../components/ui/theme";
 import ThemeToggle from "../components/ui/ThemeToggle";
@@ -8,14 +8,14 @@ export default function RootLayout() {
   return (
     <UserProvider>
       <ThemeProvider>
-        <View style={sharedStyles.screen}>
+        <SafeAreaView style={sharedStyles.screen}>
           <ThemeToggle />
           <Stack
             screenOptions={{
               headerShown: false,
             }}
           />
-        </View>
+        </SafeAreaView>
       </ThemeProvider>
     </UserProvider>
   );

@@ -51,6 +51,28 @@ const Exam = () => {
     setError("");
   }, [selectedCategoryKey]);
 
+  const questions = useMemo(() => {
+    const sourceCategories = selectedCategory
+      ? [selectedCategory]
+      : examData.categories;
+
+    const flat = sourceCategories.flatMap((category) =>
+      category.questions.map((question) => ({
+        ...question,
+        categoryKey: category.key,
+        categoryTitle: category.title,
+        questionKey: `${category.key}-${question.id}`,
+      }))
+    );
+
+    for (let i = flat.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [flat[i], flat[j]] = [flat[j], flat[i]];
+    }
+
+    return flat;
+  }, [selectedCategory]);
+
   useEffect(() => {
     if (!user || !rootState?.key) return;
     let isMounted = true;
@@ -84,28 +106,6 @@ const Exam = () => {
       isMounted = false;
     };
   }, [questions.length, rootState?.key, selectedCategoryKey, user]);
-
-  const questions = useMemo(() => {
-    const sourceCategories = selectedCategory
-      ? [selectedCategory]
-      : examData.categories;
-
-    const flat = sourceCategories.flatMap((category) =>
-      category.questions.map((question) => ({
-        ...question,
-        categoryKey: category.key,
-        categoryTitle: category.title,
-        questionKey: `${category.key}-${question.id}`,
-      }))
-    );
-
-    for (let i = flat.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [flat[i], flat[j]] = [flat[j], flat[i]];
-    }
-
-    return flat;
-  }, [selectedCategory]);
 
   const current = questions[index];
   const total = questions.length;
