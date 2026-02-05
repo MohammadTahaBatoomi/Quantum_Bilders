@@ -5,7 +5,7 @@ const fsp = fs.promises;
 const path = require("path");
 
 const DB_PATH = path.join(__dirname, "..", "..", "db.json");
-const DEFAULT_DB = { users: [], exams: [] };
+const DEFAULT_DB = { users: [], exams: [], drafts: [] };
 
 let lastOp = Promise.resolve();
 const withLock = async (fn) => {
@@ -34,6 +34,7 @@ const readDb = async () => {
     return {
       users: Array.isArray(parsed.users) ? parsed.users : [],
       exams: Array.isArray(parsed.exams) ? parsed.exams : [],
+      drafts: Array.isArray(parsed.drafts) ? parsed.drafts : [],
     };
   } catch (_) {
     return { ...DEFAULT_DB };

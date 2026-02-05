@@ -1,14 +1,15 @@
 import React from "react";
 import { View } from "react-native";
-import Form from "../components/ui/Form";
+import Starter from "../components/ui/starter";
 import { sharedStyles } from "../components/ui/theme";
 
-const FormScreen = () => {
+const StarterScreen = () => {
   return (
     <View style={sharedStyles.screen}>
-      <Form />
+      <Starter />
     </View>
   );
 };
 
-export default FormScreen;
+export default StarterScreen;
+

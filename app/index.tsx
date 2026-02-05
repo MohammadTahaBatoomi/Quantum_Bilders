@@ -1,23 +1,23 @@
+import { useRouter } from "expo-router";
+import React, { useEffect } from "react";
 import { View } from "react-native";
-import React, { useEffect, useState } from "react";
-import Starter from "../components/ui/starter";
-import { sharedStyles } from "../components/ui/theme";
 import Loading from "../components/ui/Loading";
+import { sharedStyles } from "../components/ui/theme";
 
 const Index = () => {
-  const [showLoading, setShowLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowLoading(false);
+      router.replace("/starter");
     }, 1200);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [router]);
 
   return (
     <View style={sharedStyles.screen}>
-      {showLoading ? <Loading /> : <Starter />}
+      <Loading />
     </View>
   );
 };

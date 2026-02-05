@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useRootNavigationState, useRouter } from "expo-router";
 import { sharedStyles, useTheme } from "./theme";
 import examData from "../../json/exam.json";
-import { ApiError, submitExam } from "../lib/api";
+import { ApiError, clearExamDraft, getExamDraft, saveExamDraft, submitExam } from "../lib/api";
 import { useUser } from "../state/UserContext";
 
 const SPACING = 16;
@@ -18,6 +18,7 @@ const FIELD_TO_CATEGORY: Record<string, string> = {
 const Exam = () => {
   const { colors, text } = useTheme();
   const router = useRouter();
+  const rootState = useRootNavigationState();
   const { user } = useUser();
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -25,10 +26,11 @@ const Exam = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (!rootState?.key) return;
     if (user) return;
     Alert.alert("خطا", "لطفاً ابتدا اطلاعات فردی را تکمیل کنید.");
     router.replace("/form");
-  }, [router, user]);
+  }, [rootState?.key, router, user]);
 
   const selectedCategoryKey = useMemo(() => {
     const field = user?.fieldOfStudy?.trim();
@@ -48,6 +50,40 @@ const Exam = () => {
     setAnswers({});
     setError("");
   }, [selectedCategoryKey]);
+
+  useEffect(() => {
+    if (!user || !rootState?.key) return;
+    let isMounted = true;
+    getExamDraft(user.id)
+      .then((draft) => {
+        if (!isMounted) return;
+        if (!draft) return;
+        if (draft.categoryKey && selectedCategoryKey && draft.categoryKey !== selectedCategoryKey) {
+          return;
+        }
+        const restored = (draft.answers || []).reduce<Record<string, string>>((acc, item) => {
+          if (item.questionKey && item.choice) {
+            acc[item.questionKey] = item.choice;
+          }
+          return acc;
+        }, {});
+        setAnswers(restored);
+        const firstUnanswered = questions.findIndex(
+          (question) => !restored[question.questionKey]
+        );
+        if (firstUnanswered >= 0) {
+          setIndex(firstUnanswered);
+        } else if (questions.length > 0) {
+          setIndex(questions.length - 1);
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => undefined);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [questions.length, rootState?.key, selectedCategoryKey, user]);
 
   const questions = useMemo(() => {
     const sourceCategories = selectedCategory
@@ -104,6 +140,8 @@ const Exam = () => {
         answers: payload,
       });
 
+      await clearExamDraft(user.id);
+
       const topChoice =
         result.analysis?.topChoice || result.result || "unknown";
       const analysisText =
@@ -138,8 +176,25 @@ const Exam = () => {
     }
 
     if (index < total - 1) {
-      setIndex((prev) => prev + 1);
+      const nextIndex = index + 1;
+      const nextAnswers = {
+        ...answers,
+        [current.questionKey]: selected,
+      };
+      setIndex(nextIndex);
       setError("");
+      if (user) {
+        saveExamDraft({
+          userId: user.id,
+          categoryKey: selectedCategoryKey || undefined,
+          answers: Object.entries(nextAnswers).map(([questionKey, choice]) => ({
+            questionKey,
+            choice,
+          })),
+          progressIndex: nextIndex,
+          total,
+        }).catch(() => undefined);
+      }
       return;
     }
 

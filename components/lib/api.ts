@@ -76,10 +76,23 @@ export const registerUser = (payload: RegisterUserPayload) =>
     body: JSON.stringify(payload),
   });
 
+export const getUserByPhone = (phone: string) =>
+  request<User | null>(`/users/by-phone/${encodeURIComponent(phone)}`, {
+    method: "GET",
+  });
+
 export type SubmitExamPayload = {
   userId: string;
   categoryKey?: string;
   answers: Array<{ questionKey: string; choice: string }>;
+};
+
+export type DraftExamPayload = {
+  userId: string;
+  categoryKey?: string;
+  answers: Array<{ questionKey: string; choice: string }>;
+  progressIndex?: number;
+  total?: number;
 };
 
 export type ExamResult = {
@@ -102,4 +115,31 @@ export const submitExam = (payload: SubmitExamPayload) =>
   request<ExamResult>("/exams", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+
+export type ExamDraft = {
+  id: string;
+  userId: string;
+  categoryKey?: string | null;
+  answers: Array<{ questionKey: string; choice: string }>;
+  progressIndex?: number | null;
+  total?: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export const saveExamDraft = (payload: DraftExamPayload) =>
+  request<ExamDraft>("/exams/draft", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const getExamDraft = (userId: string) =>
+  request<ExamDraft | null>(`/exams/draft/${userId}`, {
+    method: "GET",
+  });
+
+export const clearExamDraft = (userId: string) =>
+  request<{ success: true }>(`/exams/draft/${userId}`, {
+    method: "DELETE",
   });

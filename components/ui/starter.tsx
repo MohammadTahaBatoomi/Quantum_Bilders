@@ -36,7 +36,7 @@ export default function Starter() {
             transform: [{ scale: pressed ? 0.97 : 1 }],
           },
         ]}
-        onPress={() => router.push("/form")}
+        onPress={() => router.push("/auth/phone")}
       >
         <Text style={styles.buttonText}>بزن بریم 🔥</Text>
       </Pressable>

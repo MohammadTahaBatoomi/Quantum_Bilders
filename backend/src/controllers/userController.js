@@ -1,6 +1,11 @@
 "use strict";
 
-const { registerUser, getUserById, listUsers } = require("../services/userService");
+const {
+  registerUser,
+  getUserById,
+  listUsers,
+  getUserByPhone,
+} = require("../services/userService");
 
 const register = async (req, res) => {
   const user = await registerUser(req.body);
@@ -17,8 +22,14 @@ const list = async (req, res) => {
   res.status(200).json({ success: true, data: users });
 };
 
+const getByPhone = async (req, res) => {
+  const user = await getUserByPhone(req.params.phone);
+  res.status(200).json({ success: true, data: user });
+};
+
 module.exports = {
   register,
   getById,
   list,
+  getByPhone,
 };

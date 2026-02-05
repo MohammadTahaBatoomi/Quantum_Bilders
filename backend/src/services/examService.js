@@ -39,6 +39,14 @@ const validateAnswers = (answers) => {
   }
 };
 
+const validateDraftAnswers = (answers) => {
+  if (!Array.isArray(answers)) {
+    throw new AppError("answers must be an array", 400, "VALIDATION_ERROR", {
+      field: "answers",
+    });
+  }
+};
+
 const scoreAnswers = (answers) => {
   let correct = 0;
   for (const item of answers) {
@@ -108,7 +116,8 @@ const createExam = async ({ userId, answers, categoryKey }) => {
     };
 
     db.exams.push(exam);
-    return { ...db, exams: db.exams };
+    const drafts = db.drafts.filter((d) => d.userId !== userId);
+    return { ...db, exams: db.exams, drafts };
   }).then((db) => db.exams[db.exams.length - 1]);
 };
 
@@ -126,8 +135,57 @@ const listExamsByUser = async (userId) => {
   return db.exams.filter((e) => e.userId === userId);
 };
 
+const saveDraft = async ({ userId, answers, categoryKey, progressIndex, total }) => {
+  if (typeof userId !== "string" || userId.trim().length === 0) {
+    throw new AppError("userId is required", 400, "VALIDATION_ERROR", { field: "userId" });
+  }
+  validateDraftAnswers(answers);
+
+  return updateWithLock(async (db) => {
+    const user = db.users.find((u) => u.id === userId);
+    if (!user) {
+      throw new AppError("User not found", 404, "USER_NOT_FOUND", { userId });
+    }
+
+    const existingIndex = db.drafts.findIndex((d) => d.userId === userId);
+    const now = new Date().toISOString();
+    const draft = {
+      id: existingIndex >= 0 ? db.drafts[existingIndex].id : randomUUID(),
+      userId,
+      answers,
+      categoryKey: typeof categoryKey === "string" ? categoryKey : null,
+      progressIndex: Number.isInteger(progressIndex) ? progressIndex : null,
+      total: Number.isInteger(total) ? total : null,
+      updatedAt: now,
+      createdAt: existingIndex >= 0 ? db.drafts[existingIndex].createdAt : now,
+    };
+
+    if (existingIndex >= 0) {
+      db.drafts[existingIndex] = draft;
+    } else {
+      db.drafts.push(draft);
+    }
+
+    return { ...db, drafts: db.drafts };
+  }).then((db) => db.drafts.find((d) => d.userId === userId));
+};
+
+const getDraftByUser = async (userId) => {
+  const db = await readWithLock();
+  return db.drafts.find((d) => d.userId === userId) || null;
+};
+
+const clearDraftByUser = async (userId) =>
+  updateWithLock(async (db) => {
+    const drafts = db.drafts.filter((d) => d.userId !== userId);
+    return { ...db, drafts };
+  }).then(() => ({ success: true }));
+
 module.exports = {
   createExam,
   getExamById,
   listExamsByUser,
+  saveDraft,
+  getDraftByUser,
+  clearDraftByUser,
 };

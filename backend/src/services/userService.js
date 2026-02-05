@@ -4,7 +4,26 @@ const { randomUUID } = require("crypto");
 const { updateWithLock, readWithLock } = require("../data/db");
 const { AppError } = require("../utils/AppError");
 
-const normalizePhone = (phone) => phone.replace(/\s+/g, "").trim();
+const normalizePhone = (phone) => {
+  const raw = String(phone ?? "").trim();
+  // فقط ارقام را نگه می‌داریم
+  const digits = raw.replace(/\D+/g, "");
+
+  // 0098xxxxxxxxxx یا 98xxxxxxxxxx → 0xxxxxxxxxx
+  if (digits.startsWith("0098") && digits.length >= 14) {
+    return `0${digits.slice(4)}`;
+  }
+  if (digits.startsWith("98") && digits.length >= 12) {
+    return `0${digits.slice(2)}`;
+  }
+
+  // اگر با 0 شروع شود همان را برمی‌گردانیم
+  if (digits.startsWith("0")) {
+    return digits;
+  }
+
+  return digits;
+};
 
 const validateString = (value, field) => {
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -22,9 +41,8 @@ const registerUser = async ({ fullName, fieldOfStudy, phone }) => {
   return updateWithLock(async (db) => {
     const existing = db.users.find((u) => normalizePhone(u.phone) === normalizedPhone);
     if (existing) {
-      throw new AppError("Phone number already registered", 409, "PHONE_EXISTS", {
-        phone: normalizedPhone,
-      });
+      // Treat repeated registration as login
+      return db;
     }
 
     const user = {
@@ -37,7 +55,10 @@ const registerUser = async ({ fullName, fieldOfStudy, phone }) => {
 
     db.users.push(user);
     return { ...db, users: db.users };
-  }).then((db) => db.users[db.users.length - 1]);
+  }).then((db) => {
+    const existing = db.users.find((u) => normalizePhone(u.phone) === normalizedPhone);
+    return existing || db.users[db.users.length - 1];
+  });
 };
 
 const getUserById = async (id) => {
@@ -54,8 +75,17 @@ const listUsers = async () => {
   return db.users;
 };
 
+const getUserByPhone = async (phone) => {
+  validateString(phone, "phone");
+  const normalizedPhone = normalizePhone(phone);
+  const db = await readWithLock();
+  const user = db.users.find((u) => normalizePhone(u.phone) === normalizedPhone);
+  return user || null;
+};
+
 module.exports = {
   registerUser,
   getUserById,
   listUsers,
+  getUserByPhone,
 };
