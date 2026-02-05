@@ -27,7 +27,6 @@ type Props = {
 
 const OTP_LENGTH = 6;
 
-/* ✅ Notification handler (الزامی در Expo) */
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -46,11 +45,10 @@ const OtpStep: React.FC<Props> = ({ phone, onVerify }) => {
 
   const scrollRef = useRef<ScrollView>(null);
   const contentRef = useRef<View>(null);
-  const inputRef = useRef<TextInput>(null);
+  const inputRefs = useRef<Array<TextInput | null>>([]);
 
   const windowHeight = Dimensions.get("window").height;
 
-  /* ─────────────── Notification (ALL HERE) ─────────────── */
   const showOtpNotification = async (code: string) => {
     const { status } = await Notifications.requestPermissionsAsync();
     if (status !== "granted") return;
@@ -60,11 +58,10 @@ const OtpStep: React.FC<Props> = ({ phone, onVerify }) => {
         title: "سلام 👋",
         body: `کد ورود شما: ${code}`,
       },
-      trigger: null, // فوری
+      trigger: null,
     });
   };
 
-  /* ─────────────── Keyboard ─────────────── */
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", (e) =>
       setKeyboardHeight(e.endCoordinates.height)
@@ -79,7 +76,6 @@ const OtpStep: React.FC<Props> = ({ phone, onVerify }) => {
     };
   }, []);
 
-  /* ─────────────── Android OTP Reader ─────────────── */
   useEffect(() => {
     if (Platform.OS !== "android") return;
 
@@ -100,11 +96,11 @@ const OtpStep: React.FC<Props> = ({ phone, onVerify }) => {
     };
   }, []);
 
-  /* ─────────────── Scroll to Input ─────────────── */
   const scrollToInput = useCallback(() => {
-    if (!inputRef.current || !contentRef.current || !scrollRef.current) return;
+    const firstInput = inputRefs.current[0];
+    if (!firstInput || !contentRef.current || !scrollRef.current) return;
 
-    inputRef.current.measureLayout(
+    firstInput.measureLayout(
       contentRef.current,
       (_x, y, _w, h) => {
         const inputBottom = y + h + 20;
@@ -120,14 +116,49 @@ const OtpStep: React.FC<Props> = ({ phone, onVerify }) => {
     );
   }, [keyboardHeight, windowHeight]);
 
-  /* ─────────────── OTP Logic ─────────────── */
-  const handleOtpChange = async (value: string) => {
-    const cleaned = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
-    setOtp(cleaned);
+  const focusInput = (index: number) => {
+    const next = inputRefs.current[index];
+    if (next) next.focus();
+  };
+
+  const handleDigitChange = async (index: number, value: string) => {
+    const cleaned = value.replace(/\D/g, "");
+    if (!cleaned) {
+      const nextOtp = otp.split("");
+      nextOtp[index] = "";
+      setOtp(nextOtp.join(""));
+      setError(null);
+      return;
+    }
+
+    const digits = cleaned.split("").slice(0, OTP_LENGTH);
+    const nextOtp = otp.split("");
+    let writeIndex = index;
+    digits.forEach((digit) => {
+      if (writeIndex < OTP_LENGTH) {
+        nextOtp[writeIndex] = digit;
+        writeIndex += 1;
+      }
+    });
+
+    const joined = nextOtp.join("").slice(0, OTP_LENGTH);
+    setOtp(joined);
     setError(null);
 
-    if (cleaned.length === OTP_LENGTH) {
-      await submit(cleaned);
+    if (writeIndex < OTP_LENGTH) {
+      focusInput(writeIndex);
+    }
+
+    if (joined.length === OTP_LENGTH) {
+      await submit(joined);
+    }
+  };
+
+  const handleKeyPress = (index: number, key: string) => {
+    if (key !== "Backspace") return;
+    const current = otp[index];
+    if (!current && index > 0) {
+      focusInput(index - 1);
     }
   };
 
@@ -144,7 +175,6 @@ const OtpStep: React.FC<Props> = ({ phone, onVerify }) => {
     }
   };
 
-  /* ─────────────── Render ─────────────── */
   return (
     <ScrollView
       ref={scrollRef}
@@ -169,26 +199,36 @@ const OtpStep: React.FC<Props> = ({ phone, onVerify }) => {
           کد ارسال‌شده به شماره {phone}
         </Text>
 
-        <TextInput
-          ref={inputRef}
-          autoFocus
-          keyboardType="number-pad"
-          maxLength={OTP_LENGTH}
-          value={otp}
-          onChangeText={handleOtpChange}
-          onFocus={scrollToInput}
-          textContentType="oneTimeCode"
-          autoComplete="sms-otp"
-          placeholder="● ● ● ● ● ●"
-          placeholderTextColor={colors.muted}
-          style={[
-            styles.input,
-            {
-              borderColor: error ? colors.error : colors.border,
-              color: colors.text,
-            },
-          ]}
-        />
+        <View style={styles.otpRow}>
+          {Array.from({ length: OTP_LENGTH }).map((_, index) => (
+            <TextInput
+              key={index}
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
+              autoFocus={index === 0}
+              keyboardType="number-pad"
+              maxLength={1}
+              value={otp[index] || ""}
+              onChangeText={(value) => handleDigitChange(index, value)}
+              onKeyPress={({ nativeEvent }) =>
+                handleKeyPress(index, nativeEvent.key)
+              }
+              onFocus={scrollToInput}
+              textContentType={index === 0 ? "oneTimeCode" : "none"}
+              autoComplete={index === 0 ? "sms-otp" : "off"}
+              placeholder="●"
+              placeholderTextColor={colors.muted}
+              style={[
+                styles.otpInput,
+                {
+                  borderColor: error ? colors.error : colors.border,
+                  color: colors.text,
+                },
+              ]}
+            />
+          ))}
+        </View>
 
         {error && (
           <Text style={[styles.errorText, { color: colors.error }]}>
@@ -215,7 +255,6 @@ const OtpStep: React.FC<Props> = ({ phone, onVerify }) => {
 
 export default OtpStep;
 
-/* ─────────────── Styles ─────────────── */
 const styles = StyleSheet.create({
   content: {
     width: "100%",
@@ -225,15 +264,20 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
   },
-  input: {
+  otpRow: {
     width: "100%",
     maxWidth: 345,
     marginTop: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  otpInput: {
+    width: 48,
+    height: 56,
     borderWidth: 1,
-    borderRadius: 18,
-    fontSize: 16,
+    borderRadius: 14,
+    textAlign: "center",
+    fontSize: 18,
   },
   button: {
     marginTop: 6,

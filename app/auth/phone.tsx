@@ -60,7 +60,7 @@ const PhoneScreen = () => {
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: "پیامک شبیه‌سازی‌شده",
+        title: "‍",
         body: `کد تأیید شما: ${code}`,
       },
       trigger: null,
