@@ -1,13 +1,18 @@
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "./theme";
 
 const NAV_ITEMS = [
+  { label: "حساب", icon: "person", route: "/account" },
+  { label: "نقشه راه", icon: "timeline", route: "/roadmap" },
+  { label: "بهترین کیه", icon: "timeline", route: "/ranking" },
   { label: "آزمون", icon: "school", route: "/exam" },
   { label: "داشبورد", icon: "home", route: "/dashboard" },
 ];
+
+
 
 const BottomNav = () => {
   const router = useRouter();

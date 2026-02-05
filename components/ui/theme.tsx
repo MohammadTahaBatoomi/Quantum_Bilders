@@ -91,7 +91,7 @@ export const sharedStyles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 4,
+    paddingHorizontal: 12,
     width: "100%"
   },
 });
