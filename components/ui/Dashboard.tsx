@@ -93,6 +93,8 @@ const Dashboard = () => {
 
           <View style={styles.quickRow}>
             <Pressable
+  onPress={() => router.push("/exam")}
+
               android_ripple={{ color: "rgba(255,255,255,0.15)" }}
               style={({ pressed }) => [
                 styles.quickCard,

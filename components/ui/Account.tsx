@@ -19,12 +19,14 @@ const Account = () => {
   const [field, setField] = useState("مهندسی کامپیوتر");
 
   const onSave = () => {
-    // بعداً وصل میشه به API
     console.log("Saved:", { fullName, field });
   };
 
   return (
     <>
+      <StatusBar
+        barStyle={mode === "dark" ? "light-content" : "dark-content"}
+      />
 
       <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <ScrollView
@@ -76,14 +78,13 @@ const Account = () => {
             </Text>
             <TextInput
               value={field}
-              onChangeText={setField}
-            aria-disabled
+              editable={false}
               style={[
                 styles.input,
                 {
                   backgroundColor: colors.input,
                   borderColor: colors.border,
-                  color: colors.title,
+                  color: colors.muted,
                 },
               ]}
               placeholder="مثلاً: کامپیوتر"
@@ -110,6 +111,38 @@ const Account = () => {
             </View>
           </View>
 
+          {/* About Us */}
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: colors.title }]}>
+              درباره ما
+            </Text>
+
+            <Text
+              style={[
+                styles.aboutText,
+                { color: colors.subtitle },
+              ]}
+            >
+              این اپلیکیشن با هدف کمک به رشد و پیشرفت حرفه‌ای توسعه‌دهندگان
+              طراحی شده است. تمرکز ما روی مسیرهای شفاف یادگیری، تجربه کاربری
+              ساده و ابزارهای کاربردی برای ساخت آینده‌ای بهتر است.
+            </Text>
+
+            <Text
+              style={[
+                styles.aboutFooter,
+                { color: colors.muted },
+              ]}
+            >
+              نسخه 1.0.0 — ساخته‌شده با ❤️
+            </Text>
+          </View>
+
           {/* Save */}
           <Pressable
             onPress={onSave}
@@ -134,40 +167,55 @@ const Account = () => {
 export default Account;
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  content: { padding: 20, paddingBottom: 120 },
+  screen: {
+    flex: 1,
+  },
+
+  content: {
+    padding: 20,
+    paddingBottom: 140,
+  },
 
   header: {
     flexDirection: "row-reverse",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 18,
   },
-  title: { textAlign: "right" },
-  subtitle: { textAlign: "right" },
+
+  title: {
+    textAlign: "right",
+  },
+
+  subtitle: {
+    textAlign: "right",
+  },
 
   card: {
     borderWidth: 1,
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 14,
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 16,
   },
+
   sectionTitle: {
     fontSize: 15,
     fontWeight: "700",
     marginBottom: 12,
     textAlign: "right",
   },
+
   label: {
     fontSize: 12,
     marginBottom: 6,
     textAlign: "right",
   },
+
   input: {
     borderWidth: 1,
     borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     marginBottom: 14,
     fontSize: 14,
     textAlign: "right",
@@ -178,6 +226,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+
   rowLabel: {
     fontSize: 14,
     fontWeight: "600",
@@ -185,13 +234,26 @@ const styles = StyleSheet.create({
 
   saveBtn: {
     marginTop: 6,
-    borderRadius: 16,
-    paddingVertical: 12,
+    borderRadius: 18,
+    paddingVertical: 14,
     alignItems: "center",
   },
+
   saveText: {
     color: "#fff",
     fontSize: 15,
     fontWeight: "700",
+  },
+
+  aboutText: {
+    fontSize: 13,
+    lineHeight: 22,
+    textAlign: "right",
+    marginBottom: 12,
+  },
+
+  aboutFooter: {
+    fontSize: 11,
+    textAlign: "right",
   },
 });
