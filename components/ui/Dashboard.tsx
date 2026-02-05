@@ -247,6 +247,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   title: {
+    marginTop : 20,
     textAlign: "right",
   },
   subtitle: {
