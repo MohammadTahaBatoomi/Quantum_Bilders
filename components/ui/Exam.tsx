@@ -1,18 +1,60 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 import { sharedStyles, useTheme } from "./theme";
 import examData from "../../json/exam.json";
+import { ApiError, submitExam } from "../lib/api";
+import { useUser } from "../state/UserContext";
 
 const SPACING = 16;
+const FIELD_TO_CATEGORY: Record<string, string> = {
+  "ریاضی فیزیک": "engineering_math",
+  "علوم تجربی": "medical",
+  "علوم انسانی": "humanities",
+  "شبکه و نرم افزار فنی حرفه ای": "computer_it",
+  "مکانیک فنی حرفه ای": "engineering_math",
+};
 
 const Exam = () => {
   const { colors, text } = useTheme();
+  const router = useRouter();
+  const { user } = useUser();
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user) return;
+    Alert.alert("خطا", "لطفاً ابتدا اطلاعات فردی را تکمیل کنید.");
+    router.replace("/form");
+  }, [router, user]);
+
+  const selectedCategoryKey = useMemo(() => {
+    const field = user?.fieldOfStudy?.trim();
+    if (!field) return null;
+    return FIELD_TO_CATEGORY[field] ?? null;
+  }, [user?.fieldOfStudy]);
+
+  const selectedCategory = useMemo(() => {
+    if (!selectedCategoryKey) return null;
+    return examData.categories.find(
+      (category) => category.key === selectedCategoryKey
+    );
+  }, [selectedCategoryKey]);
+
+  useEffect(() => {
+    setIndex(0);
+    setAnswers({});
+    setError("");
+  }, [selectedCategoryKey]);
 
   const questions = useMemo(() => {
-    const flat = examData.categories.flatMap((category) =>
+    const sourceCategories = selectedCategory
+      ? [selectedCategory]
+      : examData.categories;
+
+    const flat = sourceCategories.flatMap((category) =>
       category.questions.map((question) => ({
         ...question,
         categoryKey: category.key,
@@ -27,7 +69,7 @@ const Exam = () => {
     }
 
     return flat;
-  }, []);
+  }, [selectedCategory]);
 
   const current = questions[index];
   const total = questions.length;
@@ -46,6 +88,48 @@ const Exam = () => {
     }));
   };
 
+  const submitAnswers = async () => {
+    if (!user) return;
+
+    const payload = questions.map((question) => ({
+      questionKey: question.questionKey,
+      choice: answers[question.questionKey],
+    }));
+
+    setSubmitting(true);
+    try {
+      const result = await submitExam({
+        userId: user.id,
+        categoryKey: selectedCategoryKey || undefined,
+        answers: payload,
+      });
+
+      const topChoice =
+        result.analysis?.topChoice || result.result || "unknown";
+      const analysisText =
+        selectedCategory?.result_analysis?.[topChoice] ||
+        "نتیجه شما ثبت شد.";
+
+      const scoreText =
+        typeof result.score === "number" && typeof result.total === "number"
+          ? `امتیاز: ${result.score} از ${result.total}`
+          : "";
+
+      Alert.alert(
+        "پایان آزمون",
+        scoreText ? `${analysisText}\n${scoreText}` : analysisText
+      );
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "ارسال پاسخ‌ها با خطا مواجه شد.";
+      Alert.alert("خطا", message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const onNext = () => {
     if (!current) return;
     if (!selected) {
@@ -59,7 +143,8 @@ const Exam = () => {
       return;
     }
 
-    Alert.alert("پایان آزمون", "پاسخ‌ها با موفقیت ثبت شد.");
+    if (submitting) return;
+    void submitAnswers();
   };
 
   const onBack = () => {
@@ -165,12 +250,18 @@ const Exam = () => {
                   {
                     backgroundColor: colors.primary,
                     transform: [{ scale: pressed ? 0.98 : 1 }],
+                    opacity: submitting ? 0.7 : 1,
                   },
                 ]}
                 onPress={onNext}
+                disabled={submitting}
               >
                 <Text style={styles.submitText}>
-                  {index === total - 1 ? "پایان آزمون" : "ثبت و بعدی"}
+                  {submitting
+                    ? "در حال ارسال..."
+                    : index === total - 1
+                      ? "پایان آزمون"
+                      : "ثبت و بعدی"}
                 </Text>
               </Pressable>
             </View>

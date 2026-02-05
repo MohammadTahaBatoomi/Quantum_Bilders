@@ -13,23 +13,28 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { sharedStyles, useTheme } from "./theme";
+import { ApiError, registerUser } from "../lib/api";
+import { useUser } from "../state/UserContext";
 
 const FIELDS = [
   "ریاضی فیزیک",
   "علوم تجربی",
   "علوم انسانی",
   "شبکه و نرم افزار فنی حرفه ای",
-  "مکانیک فنی حرفه ای "
+  "مکانیک فنی حرفه ای"
 ];
 
 const Form = () => {
   const { colors, text } = useTheme();
   const router = useRouter();
+  const { setUser } = useUser();
 
   const [fullName, setFullName] = useState("");
   const [fieldOfStudy, setFieldOfStudy] = useState("");
   const [phone, setPhone] = useState("");
   const [showFieldModal, setShowFieldModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const [errors, setErrors] = useState<{
     fullName?: string;
@@ -58,10 +63,35 @@ const Form = () => {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const onSubmit = () => {
-    if (!validate()) return;
+  const onSubmit = async () => {
+    if (!validate() || submitting) return;
 
-    router.push("/exam");
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      // Helpful for debugging on web where Alert may not show
+      console.log("Submitting form", {
+        fullName,
+        fieldOfStudy,
+        phone,
+      });
+      const user = await registerUser({
+        fullName: fullName.trim(),
+        fieldOfStudy: fieldOfStudy.trim(),
+        phone: phone.trim(),
+      });
+      setUser(user);
+      router.push("/exam");
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "ثبت اطلاعات با خطا مواجه شد.";
+      setSubmitError(message);
+      Alert.alert("خطا", message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -168,18 +198,28 @@ const Form = () => {
 را به‌درستی وارد کنید.
         </Text>
 
+        {!!submitError && (
+          <Text style={[styles.errorText, { color: colors.error }]}>
+            {submitError}
+          </Text>
+        )}
+
         {/* Submit */}
         <Pressable
           onPress={onSubmit}
+          disabled={submitting}
           style={({ pressed }) => [
             styles.submitButton,
             {
               backgroundColor: colors.primary,
               transform: [{ scale: pressed ? 0.97 : 1 }],
+              opacity: submitting ? 0.7 : 1,
             },
           ]}
         >
-          <Text style={styles.submitText}>ثبت اطلاعات</Text>
+          <Text style={styles.submitText}>
+            {submitting ? "در حال ارسال..." : "ثبت اطلاعات"}
+          </Text>
         </Pressable>
       </View>
 
@@ -205,7 +245,7 @@ const Form = () => {
                 key={item}
                 style={styles.modalItem}
                 onPress={() => {
-                  setFieldOfStudy(item);
+                  setFieldOfStudy(item.trim());
                   setShowFieldModal(false);
                 }}
               >
