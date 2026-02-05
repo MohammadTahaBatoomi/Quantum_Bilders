@@ -20,10 +20,19 @@ export default function Starter() {
       />
 
       <Text style={text.title}>
-        آینده‌ات از همین‌جا شروع میشه 🚀
+        آینده‌ات از همین‌جا شروع میشه 
       </Text>
 
-      <Text style={text.subtitle}>
+      <Text
+        style={[
+          text.subtitle,
+          {
+            textAlign: "right",
+            marginLeft: 95,
+            writingDirection: "rtl",
+          },
+        ]}
+      >
         آماده‌ای قدم بعدی رو هوشمندانه برداری؟
       </Text>
 
@@ -38,7 +47,7 @@ export default function Starter() {
         ]}
         onPress={() => router.push("/auth/phone")}
       >
-        <Text style={styles.buttonText}>بزن بریم 🔥</Text>
+        <Text style={styles.buttonText}>بزن بریم </Text>
       </Pressable>
     </View>
   );
@@ -52,8 +61,8 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    paddingVertical: 16,
-    paddingHorizontal: 110,
+    paddingVertical: 8,
+    paddingHorizontal: 140,
     borderRadius: 18,
     shadowColor: "#000",
     shadowOpacity: 0.25,

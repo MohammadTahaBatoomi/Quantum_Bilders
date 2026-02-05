@@ -8,5 +8,22 @@
       "createdAt": "2026-02-05T08:42:48.425Z"
     }
   ],
-  "exams": []
+  "exams": [],
+  "drafts": [
+    {
+      "id": "fa829281-9675-4bb6-a214-d4776e2ca300",
+      "userId": "6a0ed5e8-eeda-4971-b486-c28fe40584c1",
+      "answers": [
+        {
+          "questionKey": "computer_it-3",
+          "choice": "b"
+        }
+      ],
+      "categoryKey": null,
+      "progressIndex": 1,
+      "total": 44,
+      "updatedAt": "2026-02-05T10:25:47.240Z",
+      "createdAt": "2026-02-05T10:25:47.240Z"
+    }
+  ]
 }

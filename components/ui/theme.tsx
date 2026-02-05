@@ -27,14 +27,15 @@ export const getTheme = (mode: ThemeMode) => {
     title: {
       fontSize: 28,
       fontWeight: "900" as const,
-      marginBottom: 12,
+      marginBottom: 8,
       textAlign: "center" as const,
       color: colors.title,
     },
     subtitle: {
       fontSize: 15,
-      textAlign: "center" as const,
-      marginBottom: 48,
+      textAlign: "right" as const,
+      marginBottom: 25,
+      marginLeft : 10,
       lineHeight: 24,
       color: colors.subtitle,
     },
@@ -90,6 +91,7 @@ export const sharedStyles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 4,
+    width: "100%"
   },
 });
