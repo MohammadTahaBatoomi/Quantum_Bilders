@@ -10,6 +10,7 @@ import {
 import { useTheme } from "./theme";
 import ThemeToggle from "./ThemeToggle";
 import BottomNav from "./BottomNav";
+import { router } from "expo-router";
 
 const Dashboard = () => {
   const { colors, text, mode } = useTheme();
@@ -110,24 +111,26 @@ const Dashboard = () => {
               </Text>
             </Pressable>
 
-            <Pressable
-              android_ripple={{ color: "rgba(255,255,255,0.15)" }}
-              style={({ pressed }) => [
-                styles.quickCard,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  opacity: pressed ? 0.9 : 1,
-                },
-              ]}
-            >
-              <Text style={[styles.quickTitle, { color: colors.title }]}>
-                گزارش
-              </Text>
-              <Text style={[styles.quickSubtitle, { color: colors.muted }]}>
-                مشاهده روند
-              </Text>
-            </Pressable>
+<Pressable
+  onPress={() => router.push("/tickets")}
+  android_ripple={{ color: "rgba(255,255,255,0.15)" }}
+  style={({ pressed }) => [
+    styles.quickCard,
+    {
+      backgroundColor: colors.card,
+      borderColor: colors.border,
+      opacity: pressed ? 0.9 : 1,
+    },
+  ]}
+>
+  <Text style={[styles.quickTitle, { color: colors.title }]}>
+    گزارش
+  </Text>
+  <Text style={[styles.quickSubtitle, { color: colors.muted }]}>
+    مشاهده روند
+  </Text>
+</Pressable>
+
           </View>
 
           <View style={styles.sectionHeader}>
