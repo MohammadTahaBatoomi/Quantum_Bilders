@@ -1,5 +1,16 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Dimensions,
+  Image,
+  Keyboard,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { sharedStyles, useTheme } from "../theme";
 
 type Props = {
@@ -18,15 +29,78 @@ export const PhoneStep: React.FC<Props> = ({
   error,
 }) => {
   const { colors, text } = useTheme();
+  const scrollRef = React.useRef<ScrollView>(null);
+  const contentRef = React.useRef<View>(null);
+  const inputRef = React.useRef<TextInput>(null);
+  const [keyboardHeight, setKeyboardHeight] = React.useState(0);
+  const windowHeight = Dimensions.get("window").height;
+
+  React.useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates?.height ?? 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const scrollToInput = React.useCallback(() => {
+    if (!inputRef.current || !contentRef.current || !scrollRef.current) return;
+
+    inputRef.current.measureLayout(
+      contentRef.current,
+      (_x, y, _w, h) => {
+        const extra = 20;
+        const inputBottom = y + h + extra;
+        const visibleHeight = windowHeight - keyboardHeight;
+        if (inputBottom > visibleHeight) {
+          const targetY = Math.max(0, inputBottom - visibleHeight);
+          scrollRef.current?.scrollTo({ y: targetY, animated: true });
+        }
+      },
+      () => {}
+    );
+  }, [keyboardHeight, windowHeight]);
 
   return (
-    <View style={[sharedStyles.centered, { backgroundColor: colors.background }]}>
-      <Text style={text.title}>شماره موبایل‌ات رو وارد کن 📱</Text>
-      <Text style={[text.subtitle, { marginTop: 8 }]}>
+    <ScrollView
+      ref={scrollRef}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={[
+        sharedStyles.centered,
+        {
+          backgroundColor: colors.background,
+          paddingBottom: keyboardHeight ? keyboardHeight + 24 : 24,
+        },
+      ]}
+    >
+      <View ref={contentRef} style={styles.content}>
+
+            <Image
+              source={require("../../../assets/images/image (1).png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+      
+      <Text style={text.title}>شماره موبایل</Text>
+      <Text         style={[
+          text.subtitle,
+
+        ]}>
         برای شروع، فقط به شماره موبایلت نیاز داریم.
       </Text>
 
       <TextInput
+        ref={inputRef}
         style={[
           styles.input,
           {
@@ -39,6 +113,7 @@ export const PhoneStep: React.FC<Props> = ({
         placeholderTextColor={colors.muted}
         value={phone}
         onChangeText={onChangePhone}
+        onFocus={scrollToInput}
       />
 
       {error ? <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text> : null}
@@ -58,15 +133,24 @@ export const PhoneStep: React.FC<Props> = ({
       >
         <Text style={styles.buttonText}>{loading ? "در حال پردازش..." : "ادامه"}</Text>
       </Pressable>
-    </View>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  content: {
+    width: "100%",
+    alignItems: "center",
+  },
+    logo: {
+    width: 350,
+    height: 350,
+  }, 
   input: {
     width: "100%",
     maxWidth: 360,
-    marginTop: 24,
+    marginTop: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
@@ -74,7 +158,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    marginTop: 24,
+    marginTop: 14,
     paddingVertical: 14,
     paddingHorizontal: 80,
     borderRadius: 18,
@@ -88,12 +172,13 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "700",
+    paddingHorizontal: 85
   },
   errorText: {
     marginTop: 8,
     fontSize: 13,
+    marginLeft: 210
   },
 });
 
 export default PhoneStep;
-

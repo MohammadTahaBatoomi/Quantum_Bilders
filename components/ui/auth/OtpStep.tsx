@@ -25,7 +25,7 @@ export const OtpStep: React.FC<Props> = ({
 
   return (
     <View style={[sharedStyles.centered, { backgroundColor: colors.background }]}>
-      <Text style={text.title}>کد تایید رو وارد کن 🔐</Text>
+      <Text style={text.title}>کد تایید رو وارد کن </Text>
       <Text style={[text.subtitle, { marginTop: 8 }]}>
         یک کد تأیید برای شماره {phone} برات ارسال کردیم (فعلاً شبیه‌سازی شده).
       </Text>
