@@ -1,12 +1,14 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import React from "react";
+import { View } from "react-native";
+import Dashboard from "../components/ui/Dashboard";
+import { sharedStyles } from "../components/ui/theme";
 
-const dashboard = () => {
+const DashboardScreen = () => {
   return (
-    <View>
-      <Text>dashboard</Text>
+    <View style={sharedStyles.screen}>
+      <Dashboard />
     </View>
-  )
-}
+  );
+};
 
-export default dashboard
+export default DashboardScreen;
