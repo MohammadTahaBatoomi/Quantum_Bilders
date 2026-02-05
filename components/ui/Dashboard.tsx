@@ -9,28 +9,29 @@ import {
 } from "react-native";
 import { useTheme } from "./theme";
 import ThemeToggle from "./ThemeToggle";
+import BottomNav from "./BottomNav";
 
 const Dashboard = () => {
   const { colors, text, mode } = useTheme();
 
   return (
     <>
+      <StatusBar barStyle={mode === "dark" ? "light-content" : "dark-content"} />
 
-
-      <ScrollView
-        style={[styles.screen, { backgroundColor: colors.background }]}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.headerRow}>
-          <View style={styles.headerText}>
-            <Text style={[text.title, styles.title]}>داشبورد</Text>
-            <Text style={[text.subtitle, styles.subtitle]}>
-              خلاصه وضعیت و مسیرهای سریع
-            </Text>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerRow}>
+            <View style={styles.headerText}>
+              <Text style={[text.title, styles.title]}>داشبورد</Text>
+              <Text style={[text.subtitle, styles.subtitle]}>
+                خلاصه وضعیت و مسیرهای سریع
+              </Text>
+            </View>
+            <ThemeToggle variant="inline" />
           </View>
-          <ThemeToggle variant="inline" />
-        </View>
 
         <View style={styles.cardsRow}>
           <View
@@ -122,7 +123,10 @@ const Dashboard = () => {
             </Text>
           </Pressable>
         </View>
-      </ScrollView>
+        </ScrollView>
+
+        <BottomNav />
+      </View>
     </>
   );
 };
@@ -136,7 +140,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 32,
+    paddingBottom: 120,
   },
   headerRow: {
     flexDirection: "row-reverse",

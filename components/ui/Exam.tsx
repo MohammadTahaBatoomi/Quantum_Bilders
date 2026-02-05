@@ -29,7 +29,7 @@ const Exam = () => {
     if (!rootState?.key) return;
     if (user) return;
     Alert.alert("خطا", "لطفاً ابتدا اطلاعات فردی را تکمیل کنید.");
-    router.replace("/form");
+    router.replace("/");
   }, [rootState?.key, router, user]);
 
   const selectedCategoryKey = useMemo(() => {
