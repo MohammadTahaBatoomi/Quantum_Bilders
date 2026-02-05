@@ -1,187 +1,245 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
+import * as Notifications from "expo-notifications";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  Dimensions,
+  Image,
+  Keyboard,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import RNOtpVerify from "react-native-otp-verify";
 import { sharedStyles, useTheme } from "../theme";
 
-type FieldOfStudy =
-  | "Mathematics"
-  | "Experimental Sciences"
-  | "Humanities"
-  | "Technical Computer"
-  | "Technical Mechanics";
-
 type Props = {
-  initialFullName?: string;
-  initialFieldOfStudy?: FieldOfStudy | "";
   phone: string;
-  onSubmit: (data: { fullName: string; fieldOfStudy: FieldOfStudy }) => void;
-  loading?: boolean;
-  error?: string | null;
+  onVerify: (otp: string) => Promise<void>;
 };
 
-const FIELD_OPTIONS: FieldOfStudy[] = [
-  "Mathematics",
-  "Experimental Sciences",
-  "Humanities",
-  "Technical Computer",
-  "Technical Mechanics",
-];
+const OTP_LENGTH = 6;
 
-export const RegisterStep: React.FC<Props> = ({
-  initialFullName = "",
-  initialFieldOfStudy = "",
-  phone,
-  onSubmit,
-  loading,
-  error,
-}) => {
+/* ✅ Notification handler (الزامی در Expo) */
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
+const OtpStep: React.FC<Props> = ({ phone, onVerify }) => {
   const { colors, text } = useTheme();
-  const [fullName, setFullName] = useState(initialFullName);
-  const [fieldOfStudy, setFieldOfStudy] = useState<FieldOfStudy | "">(initialFieldOfStudy);
-  const [localError, setLocalError] = useState<string | null>(null);
 
-  const handleSubmit = () => {
-    if (!fullName.trim()) {
-      setLocalError("نام و نام خانوادگی الزامی است.");
-      return;
-    }
-    if (!fieldOfStudy) {
-      setLocalError("رشته تحصیلی را انتخاب کن.");
-      return;
-    }
-    setLocalError(null);
-    onSubmit({ fullName: fullName.trim(), fieldOfStudy });
+  const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  const scrollRef = useRef<ScrollView>(null);
+  const contentRef = useRef<View>(null);
+  const inputRef = useRef<TextInput>(null);
+
+  const windowHeight = Dimensions.get("window").height;
+
+  /* ─────────────── Notification (ALL HERE) ─────────────── */
+  const showOtpNotification = async (code: string) => {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== "granted") return;
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "سلام 👋",
+        body: `کد ورود شما: ${code}`,
+      },
+      trigger: null, // فوری
+    });
   };
 
+  /* ─────────────── Keyboard ─────────────── */
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", (e) =>
+      setKeyboardHeight(e.endCoordinates.height)
+    );
+    const hideSub = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardHeight(0)
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  /* ─────────────── Android OTP Reader ─────────────── */
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+
+    RNOtpVerify.getOtp()
+      .then(() => {
+        RNOtpVerify.addListener((message) => {
+          const code = message.match(/\d{6}/)?.[0];
+          if (code) {
+            showOtpNotification(code);
+            handleOtpChange(code);
+          }
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      RNOtpVerify.removeListener();
+    };
+  }, []);
+
+  /* ─────────────── Scroll to Input ─────────────── */
+  const scrollToInput = useCallback(() => {
+    if (!inputRef.current || !contentRef.current || !scrollRef.current) return;
+
+    inputRef.current.measureLayout(
+      contentRef.current,
+      (_x, y, _w, h) => {
+        const inputBottom = y + h + 20;
+        const visibleHeight = windowHeight - keyboardHeight;
+
+        if (inputBottom > visibleHeight) {
+          scrollRef.current.scrollTo({
+            y: inputBottom - visibleHeight,
+            animated: true,
+          });
+        }
+      }
+    );
+  }, [keyboardHeight, windowHeight]);
+
+  /* ─────────────── OTP Logic ─────────────── */
+  const handleOtpChange = async (value: string) => {
+    const cleaned = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
+    setOtp(cleaned);
+    setError(null);
+
+    if (cleaned.length === OTP_LENGTH) {
+      await submit(cleaned);
+    }
+  };
+
+  const submit = async (code = otp) => {
+    if (code.length !== OTP_LENGTH) return;
+
+    try {
+      setLoading(true);
+      await onVerify(code);
+    } catch {
+      setError("کد وارد شده معتبر نیست");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ─────────────── Render ─────────────── */
   return (
-    <View style={[sharedStyles.centered, { backgroundColor: colors.background }]}>
-      <Text style={text.title}>ثبت‌نام سریع 🎓</Text>
-      <Text style={[text.subtitle, { marginTop: 8 }]}>
-        اطلاعاتت رو کامل کن تا بتونیم تجربه شخصی‌سازی شده بهت بدیم.
-      </Text>
+    <ScrollView
+      ref={scrollRef}
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={[
+        sharedStyles.centered,
+        {
+          backgroundColor: colors.background,
+          paddingBottom: keyboardHeight + 24,
+        },
+      ]}
+    >
+      <View ref={contentRef} style={styles.content}>
+        <Image
+          source={require("../../../assets/images/image (1).png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
-      <View style={styles.form}>
-        <Text style={[styles.label, { color: colors.muted }]}>شماره موبایل</Text>
-        <Text style={[styles.readonlyValue, { color: colors.text }]}>{phone}</Text>
+        <Text style={text.title}>کد تأیید را وارد کن</Text>
+        <Text style={[text.subtitle, { marginTop: 8 }]}>
+          کد ارسال‌شده به شماره {phone}
+        </Text>
 
-        <Text style={[styles.label, { color: colors.muted }]}>نام و نام خانوادگی</Text>
         <TextInput
+          ref={inputRef}
+          autoFocus
+          keyboardType="number-pad"
+          maxLength={OTP_LENGTH}
+          value={otp}
+          onChangeText={handleOtpChange}
+          onFocus={scrollToInput}
+          textContentType="oneTimeCode"
+          autoComplete="sms-otp"
+          placeholder="● ● ● ● ● ●"
+          placeholderTextColor={colors.muted}
           style={[
             styles.input,
             {
-              borderColor: (localError && !fullName) || error ? colors.error : colors.border,
+              borderColor: error ? colors.error : colors.border,
               color: colors.text,
             },
           ]}
-          placeholder="مثلاً علی رضایی"
-          placeholderTextColor={colors.muted}
-          value={fullName}
-          onChangeText={setFullName}
         />
 
-        <Text style={[styles.label, { color: colors.muted }]}>رشته تحصیلی</Text>
-        <View style={styles.chipContainer}>
-          {FIELD_OPTIONS.map((option) => {
-            const selected = fieldOfStudy === option;
-            return (
-              <Pressable
-                key={option}
-                style={[
-                  styles.chip,
-                  {
-                    borderColor: selected ? colors.primary : colors.border,
-                    backgroundColor: selected ? colors.primarySoft : "transparent",
-                  },
-                ]}
-                onPress={() => setFieldOfStudy(option)}
-              >
-                <Text
-                  style={[
-                    styles.chipLabel,
-                    { color: selected ? colors.primary : colors.text },
-                  ]}
-                >
-                  {option}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {localError ? (
-          <Text style={[styles.errorText, { color: colors.error }]}>{localError}</Text>
-        ) : null}
-        {error ? (
-          <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
-        ) : null}
+        {error && (
+          <Text style={[styles.errorText, { color: colors.error }]}>
+            {error}
+          </Text>
+        )}
 
         <Pressable
-          android_ripple={{ color: "rgba(255,255,255,0.15)" }}
-          style={({ pressed }) => [
-            styles.button,
-            {
-              backgroundColor: colors.primary,
-              opacity: loading ? 0.7 : 1,
-              transform: [{ scale: pressed ? 0.97 : 1 }],
-            },
-          ]}
-          onPress={handleSubmit}
           disabled={loading}
+          onPress={() => submit()}
+          style={[
+            styles.button,
+            { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 },
+          ]}
         >
           <Text style={styles.buttonText}>
-            {loading ? "در حال ثبت‌نام..." : "تکمیل ثبت‌نام و ورود"}
+            {loading ? "در حال بررسی..." : "تأیید"}
           </Text>
         </Pressable>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
+export default OtpStep;
+
+/* ─────────────── Styles ─────────────── */
 const styles = StyleSheet.create({
-  form: {
+  content: {
     width: "100%",
-    maxWidth: 420,
-    marginTop: 24,
+    alignItems: "center",
   },
-  label: {
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  readonlyValue: {
-    fontSize: 15,
-    marginBottom: 12,
+  logo: {
+    width: 320,
+    height: 320,
   },
   input: {
     width: "100%",
+    maxWidth: 345,
+    marginTop: 14,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 18,
     fontSize: 16,
-    marginBottom: 16,
-  },
-  chipContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 4,
-    marginBottom: 12,
-  },
-  chip: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  chipLabel: {
-    fontSize: 13,
-    fontWeight: "500",
   },
   button: {
-    marginTop: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 80,
+    marginTop: 6,
+    paddingVertical: 0  ,
+    paddingHorizontal: 72,
     borderRadius: 18,
-    alignSelf: "flex-start",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -189,15 +247,12 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   buttonText: {
-    color: "#ffffff",
+    color: "#fff",
     fontSize: 16,
     fontWeight: "700",
   },
   errorText: {
-    marginTop: 4,
+    marginTop: 10,
     fontSize: 13,
   },
 });
-
-export default RegisterStep;
-

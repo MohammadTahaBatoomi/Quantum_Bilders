@@ -1,5 +1,6 @@
+import * as Notifications from "expo-notifications";
 import React, { useCallback, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import { useRouter } from "expo-router";
 import PhoneStep from "../../components/ui/auth/PhoneStep";
 import { sharedStyles } from "../../components/ui/theme";
@@ -38,12 +39,33 @@ const validatePhone = (value: string): string | null => {
   return null;
 };
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
 const PhoneScreen = () => {
   const router = useRouter();
 
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const showOtpNotification = useCallback(async (code: string) => {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== "granted") return;
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "پیامک شبیه‌سازی‌شده",
+        body: `کد تأیید شما: ${code}`,
+      },
+      trigger: null,
+    });
+  }, []);
 
   const handlePhoneSubmit = useCallback(() => {
     if (submitting) return;
@@ -60,8 +82,8 @@ const PhoneScreen = () => {
     const normalized = normalizePhone(phone);
     const otp = generateFakeOtp();
 
-    // For development/testing only
-    Alert.alert("کد تأیید (Dev)", `کد تأیید شما: ${otp}`);
+    // Simulated SMS via local notification
+    showOtpNotification(otp).catch(() => {});
 
     router.push({
       pathname: "/auth/otp",
@@ -69,7 +91,7 @@ const PhoneScreen = () => {
     });
 
     setSubmitting(false);
-  }, [phone, router, submitting]);
+  }, [phone, router, showOtpNotification, submitting]);
 
   return (
     <View style={sharedStyles.screen}>
@@ -90,4 +112,3 @@ const PhoneScreen = () => {
 };
 
 export default PhoneScreen;
-
