@@ -1,3 +1,4 @@
+import * as Notifications from "expo-notifications";
 import React from "react";
 import {
   Dimensions,
@@ -39,8 +40,13 @@ export const OtpStep: React.FC<Props> = ({
   const contentRef = React.useRef<View>(null);
   const inputRefs = React.useRef<Array<TextInput | null>>([]);
   const lastSubmittedOtp = React.useRef<string>("");
+  const otpRef = React.useRef<string>(otp);
   const [keyboardHeight, setKeyboardHeight] = React.useState(0);
   const windowHeight = Dimensions.get("window").height;
+
+  React.useEffect(() => {
+    otpRef.current = otp;
+  }, [otp]);
 
   React.useEffect(() => {
     const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
@@ -58,6 +64,29 @@ export const OtpStep: React.FC<Props> = ({
       hideSub.remove();
     };
   }, []);
+
+  React.useEffect(() => {
+    const extractOtp = (text?: string | null) => text?.match(/\d{6}/)?.[0];
+
+    const handleNotification = (notification: Notifications.Notification) => {
+      const title = notification.request.content.title ?? "";
+      const body = notification.request.content.body ?? "";
+      const code = extractOtp(`${title} ${body}`);
+      if (!code) return;
+      if (otpRef.current.length >= OTP_LENGTH) return;
+      onChangeOtp(code);
+    };
+
+    const receivedSub = Notifications.addNotificationReceivedListener(handleNotification);
+    const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {
+      handleNotification(response.notification);
+    });
+
+    return () => {
+      receivedSub.remove();
+      responseSub.remove();
+    };
+  }, [onChangeOtp]);
 
   React.useEffect(() => {
     if (otp.length < OTP_LENGTH) {
@@ -200,7 +229,7 @@ export const OtpStep: React.FC<Props> = ({
         onPress={onSubmit}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>{loading ? "در حال بررسی..." : "تایید"}</Text>
+        <Text style={styles.buttonText}>{loading ? "تایبد" : "تایید"}</Text>
       </Pressable>
       </View>
     </ScrollView>
@@ -233,7 +262,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 24,
-    paddingVertical: 14,
+    paddingVertical: 8,
     paddingHorizontal: 80,
     borderRadius: 18,
     shadowColor: "#000",

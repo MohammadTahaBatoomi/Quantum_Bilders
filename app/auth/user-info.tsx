@@ -24,7 +24,7 @@ const UserInfoScreen = () => {
   const completeLogin = useCallback(
     (user: User) => {
       setUser(user);
-      router.replace("/exam");
+      router.replace("/dashboard");
     },
     [router, setUser],
   );

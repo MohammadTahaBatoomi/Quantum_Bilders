@@ -1,8 +1,53 @@
-export const API_BASE_URL =
-  (process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:3001/api").replace(
-    /\/$/,
-    ""
-  );
+import Constants from "expo-constants";
+import { Platform } from "react-native";
+
+const extractHost = (uri?: string | null) => {
+  if (!uri || typeof uri !== "string") return null;
+  const cleaned = uri.replace(/^https?:\/\//, "");
+  const host = cleaned.split("/")[0]?.split(":")[0];
+  return host || null;
+};
+
+const getDevServerHost = () => {
+  const manifest = (Constants as { manifest?: { hostUri?: string; debuggerHost?: string } })
+    .manifest;
+  const manifest2 = (Constants as { manifest2?: { extra?: { expoClient?: { hostUri?: string } } } })
+    .manifest2;
+  const expoConfig = Constants.expoConfig as { hostUri?: string } | null;
+
+  const hostUri =
+    expoConfig?.hostUri ??
+    manifest?.hostUri ??
+    manifest?.debuggerHost ??
+    manifest2?.extra?.expoClient?.hostUri;
+
+  return extractHost(hostUri);
+};
+
+const getDefaultApiBaseUrl = () => {
+  const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+  if (envUrl && envUrl.trim().length > 0) {
+    return envUrl.trim();
+  }
+
+  if (__DEV__) {
+    const host = getDevServerHost();
+    if (host) {
+      return `http://${host}:3001/api`;
+    }
+
+    if (Platform.OS === "android") {
+      return "http://10.0.2.2:3001/api";
+    }
+
+    return "http://localhost:3001/api";
+  }
+
+  // Production fallback (prefer setting EXPO_PUBLIC_API_BASE_URL)
+  return "http://localhost:3001/api";
+};
+
+export const API_BASE_URL = getDefaultApiBaseUrl().replace(/\/$/, "");
 
 type ApiErrorPayload = {
   code?: string;
@@ -29,13 +74,20 @@ type ApiResponse<T> = {
 };
 
 const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
+  } catch (err) {
+    throw new ApiError("ارتباط با سرور برقرار نشد. اتصال شبکه یا آدرس سرور را بررسی کن.", {
+      code: "NETWORK_ERROR",
+    });
+  }
 
   let payload: ApiResponse<T> | null = null;
   try {

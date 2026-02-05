@@ -109,7 +109,7 @@ export const PhoneStep: React.FC<Props> = ({
           },
         ]}
         keyboardType="phone-pad"
-        placeholder="مثلاً 09123456789"
+        placeholder="شماره موبایل   "
         placeholderTextColor={colors.muted}
         value={phone}
         onChangeText={onChangePhone}
@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 18,
     fontSize: 16,
+    textAlign: "right"
   },
   button: {
     marginTop: 14,

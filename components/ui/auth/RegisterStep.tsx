@@ -1,302 +1,340 @@
-import * as Notifications from "expo-notifications";
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useState } from "react";
 import {
-  Dimensions,
-  Image,
-  Keyboard,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
+  View,
   Text,
   TextInput,
-  View,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Image,
+  Modal,
+  StatusBar,
 } from "react-native";
-import RNOtpVerify from "react-native-otp-verify";
 import { sharedStyles, useTheme } from "../theme";
 
+/* ===================== Types ===================== */
+
+type FieldOfStudy =
+  | "Mathematics"
+  | "Experimental Sciences"
+  | "Humanities"
+  | "Technical Computer"
+  | "Technical Mechanics";
+
 type Props = {
+  initialFullName?: string;
+  initialFieldOfStudy?: FieldOfStudy | "";
   phone: string;
-  onVerify: (otp: string) => Promise<void>;
+  onSubmit: (data: {
+    fullName: string;
+    fieldOfStudy: FieldOfStudy;
+  }) => void;
+  loading?: boolean;
+  error?: string | null;
 };
 
-const OTP_LENGTH = 6;
+const FIELD_OPTIONS: FieldOfStudy[] = [
+  "ریاضی فیزیک",
+  "علوم تجربی",
+  "علوم انسانی",
+  "شبکه و نرم افزار / فنی حرفه ای ",
+  "مکانیک / فنی حرفه ای",
+];
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
+/* ===================== Component ===================== */
 
-const OtpStep: React.FC<Props> = ({ phone, onVerify }) => {
+const RegisterStep: React.FC<Props> = ({
+  initialFullName = "",
+  initialFieldOfStudy = "",
+  phone,
+  onSubmit,
+  loading = false,
+  error = null,
+}) => {
   const { colors, text } = useTheme();
 
-  const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [fullName, setFullName] = useState(initialFullName);
+  const [fieldOfStudy, setFieldOfStudy] =
+    useState<FieldOfStudy | "">(initialFieldOfStudy);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [selectOpen, setSelectOpen] = useState(false);
 
-  const scrollRef = useRef<ScrollView>(null);
-  const contentRef = useRef<View>(null);
-  const inputRefs = useRef<Array<TextInput | null>>([]);
+  /* ===================== Handlers ===================== */
 
-  const windowHeight = Dimensions.get("window").height;
-
-  const showOtpNotification = async (code: string) => {
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== "granted") return;
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "سلام 👋",
-        body: `کد ورود شما: ${code}`,
-      },
-      trigger: null,
-    });
-  };
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener("keyboardDidShow", (e) =>
-      setKeyboardHeight(e.endCoordinates.height)
-    );
-    const hideSub = Keyboard.addListener("keyboardDidHide", () =>
-      setKeyboardHeight(0)
-    );
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (Platform.OS !== "android") return;
-
-    RNOtpVerify.getOtp()
-      .then(() => {
-        RNOtpVerify.addListener((message) => {
-          const code = message.match(/\d{6}/)?.[0];
-          if (code) {
-            showOtpNotification(code);
-            handleOtpChange(code);
-          }
-        });
-      })
-      .catch(() => {});
-
-    return () => {
-      RNOtpVerify.removeListener();
-    };
-  }, []);
-
-  const scrollToInput = useCallback(() => {
-    const firstInput = inputRefs.current[0];
-    if (!firstInput || !contentRef.current || !scrollRef.current) return;
-
-    firstInput.measureLayout(
-      contentRef.current,
-      (_x, y, _w, h) => {
-        const inputBottom = y + h + 20;
-        const visibleHeight = windowHeight - keyboardHeight;
-
-        if (inputBottom > visibleHeight) {
-          scrollRef.current.scrollTo({
-            y: inputBottom - visibleHeight,
-            animated: true,
-          });
-        }
-      }
-    );
-  }, [keyboardHeight, windowHeight]);
-
-  const focusInput = (index: number) => {
-    const next = inputRefs.current[index];
-    if (next) next.focus();
-  };
-
-  const handleDigitChange = async (index: number, value: string) => {
-    const cleaned = value.replace(/\D/g, "");
-    if (!cleaned) {
-      const nextOtp = otp.split("");
-      nextOtp[index] = "";
-      setOtp(nextOtp.join(""));
-      setError(null);
+  const handleSubmit = () => {
+    if (!fullName.trim()) {
+      setLocalError("نام و نام خانوادگی الزامی است.");
       return;
     }
 
-    const digits = cleaned.split("").slice(0, OTP_LENGTH);
-    const nextOtp = otp.split("");
-    let writeIndex = index;
-    digits.forEach((digit) => {
-      if (writeIndex < OTP_LENGTH) {
-        nextOtp[writeIndex] = digit;
-        writeIndex += 1;
-      }
+    if (!fieldOfStudy) {
+      setLocalError("لطفاً رشته تحصیلی را انتخاب کن.");
+      return;
+    }
+
+    setLocalError(null);
+
+    onSubmit({
+      fullName: fullName.trim(),
+      fieldOfStudy,
     });
-
-    const joined = nextOtp.join("").slice(0, OTP_LENGTH);
-    setOtp(joined);
-    setError(null);
-
-    if (writeIndex < OTP_LENGTH) {
-      focusInput(writeIndex);
-    }
-
-    if (joined.length === OTP_LENGTH) {
-      await submit(joined);
-    }
   };
 
-  const handleKeyPress = (index: number, key: string) => {
-    if (key !== "Backspace") return;
-    const current = otp[index];
-    if (!current && index > 0) {
-      focusInput(index - 1);
-    }
-  };
-
-  const submit = async (code = otp) => {
-    if (code.length !== OTP_LENGTH) return;
-
-    try {
-      setLoading(true);
-      await onVerify(code);
-    } catch {
-      setError("کد وارد شده معتبر نیست");
-    } finally {
-      setLoading(false);
-    }
-  };
+  /* ===================== Render ===================== */
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={[
-        sharedStyles.centered,
-        {
-          backgroundColor: colors.background,
-          paddingBottom: keyboardHeight + 24,
-        },
-      ]}
-    >
-      <View ref={contentRef} style={styles.content}>
+    <>
+      <StatusBar barStyle="dark-content" />
+
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          sharedStyles.centered,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <Image
           source={require("../../../assets/images/image (1).png")}
           style={styles.logo}
           resizeMode="contain"
         />
 
-        <Text style={text.title}>کد تأیید را وارد کن</Text>
-        <Text style={[text.subtitle, { marginTop: 8 }]}>
-          کد ارسال‌شده به شماره {phone}
-        </Text>
+        <View style={styles.content}>
+          <Text style={text.title}>ثبت‌نام سریع 🎓</Text>
+          <Text style={[text.subtitle, { marginTop: 8 }]}>
+            اطلاعاتت رو کامل کن تا تجربه بهتری داشته باشی
+          </Text>
 
-        <View style={styles.otpRow}>
-          {Array.from({ length: OTP_LENGTH }).map((_, index) => (
+          <View style={styles.form}>
+            {/* Full Name */}
             <TextInput
-              key={index}
-              ref={(el) => {
-                inputRefs.current[index] = el;
-              }}
-              autoFocus={index === 0}
-              keyboardType="number-pad"
-              maxLength={1}
-              value={otp[index] || ""}
-              onChangeText={(value) => handleDigitChange(index, value)}
-              onKeyPress={({ nativeEvent }) =>
-                handleKeyPress(index, nativeEvent.key)
-              }
-              onFocus={scrollToInput}
-              textContentType={index === 0 ? "oneTimeCode" : "none"}
-              autoComplete={index === 0 ? "sms-otp" : "off"}
-              placeholder="●"
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="نام و نام خانوادگی"
               placeholderTextColor={colors.muted}
               style={[
-                styles.otpInput,
+                styles.input,
                 {
-                  borderColor: error ? colors.error : colors.border,
+                  borderColor:
+                    (localError && !fullName) || error
+                      ? colors.error
+                      : colors.border,
                   color: colors.text,
                 },
               ]}
             />
-          ))}
+
+            {/* Select Field */}
+            <Pressable
+              onPress={() => setSelectOpen(true)}
+              style={[
+                styles.selectBox,
+                {
+                  borderColor:
+                    localError && !fieldOfStudy
+                      ? colors.error
+                      : colors.border,
+                  backgroundColor: colors.card,
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  fontSize: 15,
+                  color: fieldOfStudy ? colors.text : colors.muted,
+                }}
+              >
+                {fieldOfStudy || "انتخاب رشته تحصیلی"}
+              </Text>
+              <Text style={{ color: colors.muted, fontSize: 16 }}>▾</Text>
+            </Pressable>
+
+            {(localError || error) && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                ⚠️ {localError || error}
+              </Text>
+            )}
+
+            {/* Submit */}
+            <Pressable
+              onPress={handleSubmit}
+              disabled={loading}
+              android_ripple={{ color: "rgba(255,255,255,0.15)" }}
+              style={({ pressed }) => [
+                styles.button,
+                {
+                  backgroundColor: colors.primary,
+                  opacity: loading ? 0.7 : 1,
+                  transform: [{ scale: pressed ? 0.97 : 1 }],
+                },
+              ]}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? "در حال ثبت‌نام..." : "تکمیل ثبت‌نام"}
+              </Text>
+            </Pressable>
+          </View>
         </View>
+      </ScrollView>
 
-        {error && (
-          <Text style={[styles.errorText, { color: colors.error }]}>
-            {error}
-          </Text>
-        )}
-
+      {/* ===================== Select Modal ===================== */}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={selectOpen}
+        statusBarTranslucent
+      >
         <Pressable
-          disabled={loading}
-          onPress={() => submit()}
+          style={styles.backdrop}
+          onPress={() => setSelectOpen(false)}
+        />
+
+        <View
           style={[
-            styles.button,
-            { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 },
+            styles.selectContainer,
+            { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          <Text style={styles.buttonText}>
-            {loading ? "در حال بررسی..." : "تأیید"}
+          <Text style={[styles.selectTitle, { color: colors.title }]}>
+            رشته تحصیلی
           </Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+
+          {FIELD_OPTIONS.map((item) => {
+            const selected = fieldOfStudy === item;
+
+            return (
+              <Pressable
+                key={item}
+                onPress={() => {
+                  setFieldOfStudy(item);
+                  setSelectOpen(false);
+                }}
+                style={[
+                  styles.option,
+                  selected && { backgroundColor: colors.primarySoft },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    { color: colors.text },
+                    selected && { color: colors.primary, fontWeight: "700" },
+                  ]}
+                >
+                  {item}
+                </Text>
+                {selected && (
+                  <Text style={[styles.check, { color: colors.primary }]}>
+                    ✓
+                  </Text>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      </Modal>
+    </>
   );
 };
 
-export default OtpStep;
+export default RegisterStep;
+
+/* ===================== Styles ===================== */
 
 const styles = StyleSheet.create({
+  logo: {
+    width: 350,
+    height: 350,
+  },
   content: {
     width: "100%",
     alignItems: "center",
   },
-  logo: {
-    width: 320,
-    height: 320,
-  },
-  otpRow: {
+  form: {
     width: "100%",
-    maxWidth: 345,
-    marginTop: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    maxWidth: 350,
+    marginTop: 16,
   },
-  otpInput: {
-    width: 48,
+  input: {
+    paddingHorizontal: 14,
+    paddingVertical: 18,
+    textAlign: "right",
+    borderWidth: 1,
+    borderRadius: 12,
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  selectBox: {
     height: 56,
     borderWidth: 1,
-    borderRadius: 14,
-    textAlign: "center",
-    fontSize: 18,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+    textAlign: 'right'
   },
   button: {
-    marginTop: 6,
-    paddingVertical: 0  ,
-    paddingHorizontal: 72,
+    marginTop: 24,
+    paddingVertical: 12,
+    width: 350,
     borderRadius: 18,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
     elevation: 6,
+    alignSelf: "center",
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
+    textAlign: "center",
   },
   errorText: {
-    marginTop: 10,
+    marginTop: 6,
     fontSize: 13,
+  },
+
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
+  },
+  selectContainer: {
+    position: "absolute",
+    bottom: "22%",
+    alignSelf: "center",
+    width: "90%",
+    maxWidth: 360,
+    borderRadius: 26,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 25,
+    elevation: 12,
+  },
+  selectTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 14,
+  },
+option: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  paddingVertical: 14,
+  paddingLeft: 14,
+  borderRadius: 16,
+  textAlign: "right",
+},
+
+  optionText: {
+    fontSize: 15,
+  },
+  check: {
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

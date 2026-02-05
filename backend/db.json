@@ -6,6 +6,20 @@
       "fieldOfStudy": "Experimental Sciences",
       "phone": "09022850012",
       "createdAt": "2026-02-05T08:42:48.425Z"
+    },
+    {
+      "id": "aaef0893-b679-4791-9e43-6c5ee10f3e56",
+      "fullName": "cmdc",
+      "fieldOfStudy": "Technical Computer",
+      "phone": "09022850021",
+      "createdAt": "2026-02-05T16:24:07.388Z"
+    },
+    {
+      "id": "1c9c5ca0-59bf-4f76-8da8-9a4223e09dc7",
+      "fullName": "lfldf",
+      "fieldOfStudy": "Mathematics",
+      "phone": "090337300011",
+      "createdAt": "2026-02-05T16:28:25.195Z"
     }
   ],
   "exams": [],
