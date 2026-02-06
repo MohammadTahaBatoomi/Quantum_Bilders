@@ -11,16 +11,21 @@ export const getTheme = (mode: ThemeMode) => {
     title: isDark ? "#ffffff" : "#020617",
     subtitle: isDark ? "#cbd5f5" : "#475569",
     primary: "#00aad2",
+    success: isDark ? "#4ade80" : "#16a34a",
+    danger: isDark ? "#f87171" : "#dc2626",
     text: isDark ? "#e2e8f0" : "#0f172a",
     muted: isDark ? "#94a3b8" : "#64748b",
     card: isDark ? "#0f172a" : "#ffffff",
     border: isDark ? "#1e293b" : "#e2e8f0",
+    input: isDark ? "rgba(255,255,255,0.08)" : "#f1f5f9",
     error: isDark ? "#fca5a5" : "#dc2626",
     toggleBg: isDark
       ? "rgba(255,255,255,0.12)"
       : "rgba(0,0,0,0.06)",
     icon: isDark ? "#facc15" : "#0f172a",
     primarySoft: isDark ? "rgba(56,189,248,0.18)" : "rgba(14,165,233,0.12)",
+    successSoft: isDark ? "rgba(74,222,128,0.18)" : "rgba(34,197,94,0.14)",
+    dangerSoft: isDark ? "rgba(248,113,113,0.18)" : "rgba(239,68,68,0.14)",
   };
 
   const text = {

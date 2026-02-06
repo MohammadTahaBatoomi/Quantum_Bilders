@@ -15,7 +15,7 @@
     "مکانیک فنی حرفه ای": "engineering_math",
   };
 
-  const Exam = () => {
+  const Exam = ({ courseTitle }: { courseTitle?: string }) => {
     const { colors, text } = useTheme();
     const router = useRouter();
     const rootState = useRootNavigationState();
@@ -225,7 +225,9 @@
             resizeMode="contain"
           />
           <View style={styles.headerText}>
-            <Text style={text.title}>ازمون استعداد یابی </Text>
+            <Text style={text.title}>
+              {courseTitle ? `آزمون ${courseTitle}` : "ازمون استعداد یابی"}
+            </Text>
           </View>
         </View>
 
@@ -577,5 +579,4 @@
     letterSpacing: 0.3,
   },
 });
-
 

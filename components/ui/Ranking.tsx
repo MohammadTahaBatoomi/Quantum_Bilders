@@ -7,9 +7,6 @@ import {
   TouchableOpacity,
   StatusBar,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "./theme";
-import BottomNav from "./BottomNav";
 
 /* ---------------- Mock Data ---------------- */
 
@@ -22,58 +19,40 @@ const DATA = Array.from({ length: 100 }, (_, i) => ({
   score: 1500 - i * 10,
 }));
 
-/* ---------------- Item ---------------- */
+/* ---------------- Ranking Item ---------------- */
 
-const RankingItem = ({ item, colors }) => {
+const RankingItem = ({ item }) => {
   const isTop = item.id === 1;
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: colors.card,
-          borderColor: isTop ? colors.primary : colors.border,
-        },
-      ]}
-    >
-      <Text
-        style={[
-          styles.rank,
-          { color: isTop ? colors.primary : colors.title },
-        ]}
-      >
-        #{item.id}
-      </Text>
-
-      <View style={styles.info}>
-        <Text style={[styles.name, { color: colors.title }]}>
-          {item.name}
+    <View style={[styles.card, isTop && styles.topCard]}>
+      {/* Right side (Rank + Info) */}
+      <View style={styles.rightSection}>
+        <Text style={[styles.rank, isTop && styles.topText]}>
+          #{item.id}
         </Text>
 
-        <Text style={[styles.meta, { color: colors.subtitle }]}>
-          حوزه: {item.field} | سابقه: {item.years} سال | تایم: {item.hours} ساعت
-        </Text>
+        <View style={styles.info}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.meta}>
+            حوزه: {item.field} | سابقه: {item.years} سال | تایم: {item.hours} ساعت
+          </Text>
+        </View>
       </View>
 
-      <Text style={[styles.score, { color: colors.primary }]}>
-        {item.score}
-      </Text>
+      {/* Left side (Score) */}
+      <Text style={styles.score}>{item.score}</Text>
     </View>
   );
 };
 
+/* ---------------- Main Screen ---------------- */
 
-const Ranking = ({ mode, toggleTheme }) => {
-  const { colors, text } = useTheme();
-
+const Ranking = () => {
   return (
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <StatusBar
-        barStyle={mode === "dark" ? "light-content" : "dark-content"}
-      />
+    <View style={styles.screen}>
+      <StatusBar barStyle="dark-content" />
 
-      {/* Scrollable Content */}
       <FlatList
         data={DATA}
         keyExtractor={(item) => item.id.toString()}
@@ -81,36 +60,19 @@ const Ranking = ({ mode, toggleTheme }) => {
         contentContainerStyle={styles.content}
         ListHeaderComponent={
           <View style={styles.header}>
-            <View style={styles.headerRow}>
-              <Text style={[text.title, styles.title]}>
-                🏆 رنکینگ برترین‌ها
-              </Text>
-
-            </View>
-
-            <Text style={[text.subtitle, styles.subtitle]}>
+            <Text style={styles.title}>🏆 رنکینگ برترین‌ها</Text>
+            <Text style={styles.subtitle}>
               ۱۰۰ نفر اول بر اساس امتیاز
             </Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <RankingItem item={item} colors={colors} />
-        )}
+        renderItem={({ item }) => <RankingItem item={item} />}
       />
 
       {/* CTA Button */}
-      <TouchableOpacity
-        activeOpacity={0.85}
-        style={[
-          styles.ctaButton,
-          { backgroundColor: colors.primary },
-        ]}
-      >
+      <TouchableOpacity activeOpacity={0.85} style={styles.ctaButton}>
         <Text style={styles.ctaText}>🚀 ارتقای رتبه من</Text>
       </TouchableOpacity>
-
-      {/* Bottom Navigation */}
-      <BottomNav />
     </View>
   );
 };
@@ -118,92 +80,108 @@ const Ranking = ({ mode, toggleTheme }) => {
 export default Ranking;
 
 /* =======================
-   Styles (Roadmap Style)
+   Styles
    ======================= */
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+    backgroundColor: "#f6f7f9",
   },
 
   content: {
     padding: 20,
-    paddingBottom: 200, // فضای امن برای CTA + BottomNav
+    paddingBottom: 140,
   },
 
   header: {
     marginBottom: 16,
   },
 
-  headerRow: {
-    flexDirection: "row-reverse",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
   title: {
+    fontSize: 22,
+    fontWeight: "900",
     textAlign: "right",
   },
 
   subtitle: {
     marginTop: 6,
+    fontSize: 13,
+    color: "#6b7280",
     textAlign: "right",
-  },
-
-  themeButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 3,
   },
 
   card: {
     flexDirection: "row-reverse",
+    justifyContent: "space-between",
     alignItems: "center",
-    borderWidth: 1,
+    backgroundColor: "#fff",
     borderRadius: 18,
     padding: 16,
     marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    elevation: 2,
+  },
+
+  topCard: {
+    borderColor: "#f59e0b",
+    backgroundColor: "#fff7ed",
+  },
+
+  rightSection: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    flex: 1,
   },
 
   rank: {
     width: 40,
     fontSize: 16,
-    fontWeight: "800",
+    fontWeight: "900",
     textAlign: "center",
+    color: "#111827",
+  },
+
+  topText: {
+    color: "#f59e0b",
   },
 
   info: {
-    flex: 1,
-    marginHorizontal: 12,
+    marginRight: 12,
+    flexShrink: 1,
   },
 
   name: {
     fontSize: 15,
     fontWeight: "700",
     textAlign: "right",
+    color: "#111827",
   },
 
   meta: {
     fontSize: 12,
     marginTop: 4,
     textAlign: "right",
+    color: "#6b7280",
   },
 
   score: {
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#2563eb",
+    minWidth: 60,
+    textAlign: "left",
   },
 
   ctaButton: {
     position: "absolute",
-    bottom:  120, // بالای BottomNav
+    bottom: 30,
     left: 20,
     right: 20,
     height: 56,
     borderRadius: 16,
+    backgroundColor: "#2563eb",
     alignItems: "center",
     justifyContent: "center",
     elevation: 6,
@@ -212,6 +190,6 @@ const styles = StyleSheet.create({
   ctaText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "800",
+    fontWeight: "900",
   },
 });
