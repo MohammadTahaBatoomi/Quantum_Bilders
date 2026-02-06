@@ -1,14 +1,13 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import Rodmap from '../components/ui/Roadmap'
+import React from "react";
+import { View } from "react-native";
+import Roadmap from "../components/ui/Roadmap";
 
-const rodmap = () => {
+const RoadmapPage = () => {
   return (
-    <View>
-        <Rodmap />
+    <View style={{ flex: 1 }}>
+      <Roadmap />
     </View>
+  );
+};
 
-  )
-}
-
-export default rodmap
+export default RoadmapPage;

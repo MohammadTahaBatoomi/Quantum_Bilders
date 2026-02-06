@@ -1,4 +1,4 @@
-import { SafeAreaView } from "react-native";
+import { SafeAreaView, View } from "react-native";
 import { Stack, usePathname } from "expo-router";
 import { ThemeProvider, sharedStyles } from "../components/ui/theme";
 import ThemeToggle from "../components/ui/ThemeToggle";
@@ -11,13 +11,16 @@ export default function RootLayout() {
   return (
     <UserProvider>
       <ThemeProvider>
-        <SafeAreaView style={sharedStyles.screen}>
-          {showFloatingToggle ? <ThemeToggle /> : null}
-          <Stack
-            screenOptions={{
-              headerShown: false,
-            }}
-          />
+        <SafeAreaView style={{ flex: 1 }}> {/* حتما flex:1 */}
+          <View style={{ flex: 1, position: "relative" }}> {/* relative برای BottomNav */}
+            {showFloatingToggle && <ThemeToggle />}
+
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            />
+          </View>
         </SafeAreaView>
       </ThemeProvider>
     </UserProvider>

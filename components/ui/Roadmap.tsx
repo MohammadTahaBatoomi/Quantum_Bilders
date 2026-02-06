@@ -6,10 +6,34 @@ import BottomNav from "./BottomNav";
 const Roadmap = () => {
   const { colors, text } = useTheme();
 
+  const steps = [
+    {
+      title: "مرحله ۱: یادگیری مبانی",
+      desc: "سینتکس پایه، متغیرها، انواع داده، شرط‌ها، حلقه‌ها و توابع داخلی پایتون",
+    },
+    {
+      title: "مرحله ۲: ساختمان داده و الگوریتم",
+      desc: "لیست‌ها، دیکشنری‌ها، استک، صف، درخت‌ها، بازگشت و الگوریتم‌های مرتب‌سازی",
+    },
+    {
+      title: "مرحله ۳: پایتون پیشرفته",
+      desc: "برنامه‌نویسی شی‌گرا، کلاس‌ها، ارث‌بری، دکوراتورها، ماژول‌ها و Regex",
+    },
+    {
+      title: "مرحله ۴: فریم‌ورک‌ها",
+      desc: "Django، FastAPI، Flask و برنامه‌نویسی همزمان و غیرهمزمان",
+    },
+    {
+      title: "مرحله ۵: تست و دواپس",
+      desc: "تست‌نویسی با pytest، تایپ ایستا، آماده‌سازی پروژه و مفاهیم DevOps",
+    },    {
+      title: "مرحله ۵: تست و دواپس",
+      desc: "تست‌نویسی با pytest، تایپ ایستا، آماده‌سازی پروژه و مفاهیم DevOps",
+    },
+  ];
+
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      
-      {/* Scrollable Full Screen Content */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
@@ -18,14 +42,14 @@ const Roadmap = () => {
         {/* Header */}
         <View style={styles.header}>
           <Text style={[text.title, styles.title]}>
-            نقشه راه یادگیری
+            دستیار هوشمند یادگیری پایتون
           </Text>
           <Text style={[text.subtitle, styles.subtitle]}>
-            مسیر پیشنهادی برای پیشرفت مرحله‌به‌مرحله
+            همراه شخصی‌سازی‌شدهٔ شما برای یادگیری مرحله‌به‌مرحله
           </Text>
         </View>
 
-        {/* Step 1 */}
+        {/* Info Card */}
         <View
           style={[
             styles.card,
@@ -33,88 +57,34 @@ const Roadmap = () => {
           ]}
         >
           <Text style={[styles.stepTitle, { color: colors.title }]}>
-            مرحله ۱: مبانی
+            AI Tutor – roadmap.sh
           </Text>
           <Text style={[styles.stepDesc, { color: colors.subtitle }]}>
-            آشنایی با مفاهیم پایه، ساختار پروژه و اصول اولیه
+            این نقشه راه به شما کمک می‌کند مفاهیم پایتون را یاد بگیرید، پیشرفت خود
+            را دنبال کنید، منابع مناسب پیدا کنید و برای بازار کار آماده شوید.
           </Text>
         </View>
 
-        {/* Step 2 */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <Text style={[styles.stepTitle, { color: colors.title }]}>
-            مرحله ۲: پیاده‌سازی
-          </Text>
-          <Text style={[styles.stepDesc, { color: colors.subtitle }]}>
-            کار با کامپوننت‌ها، state، navigation و API
-          </Text>
-        </View>
-
-        {/* Step 3 */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <Text style={[styles.stepTitle, { color: colors.title }]}>
-            مرحله ۳: حرفه‌ای
-          </Text>
-          <Text style={[styles.stepDesc, { color: colors.subtitle }]}>
-            بهینه‌سازی، معماری، تست و آماده‌سازی برای بازار
-          </Text>
-        </View>
-              {/* Step 3 */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <Text style={[styles.stepTitle, { color: colors.title }]}>
-            مرحله ۳: حرفه‌ای
-          </Text>
-          <Text style={[styles.stepDesc, { color: colors.subtitle }]}>
-            بهینه‌سازی، معماری، تست و آماده‌سازی برای بازار
-          </Text>
-        </View>
-              {/* Step 3 */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <Text style={[styles.stepTitle, { color: colors.title }]}>
-            مرحله ۳: حرفه‌ای
-          </Text>
-          <Text style={[styles.stepDesc, { color: colors.subtitle }]}>
-            بهینه‌سازی، معماری، تست و آماده‌سازی برای بازار
-          </Text>
-        </View>
-              {/* Step 3 */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <Text style={[styles.stepTitle, { color: colors.title }]}>
-            مرحله ۳: حرفه‌ای
-          </Text>
-          <Text style={[styles.stepDesc, { color: colors.subtitle }]}>
-            بهینه‌سازی، معماری، تست و آماده‌سازی برای بازار
-          </Text>
-        </View>
-        
+        {/* Steps */}
+        {steps.map((step, index) => (
+          <View
+            key={index}
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.stepTitle, { color: colors.title }]}>
+              {step.title}
+            </Text>
+            <Text style={[styles.stepDesc, { color: colors.subtitle }]}>
+              {step.desc}
+            </Text>
+          </View>
+        ))}
       </ScrollView>
 
-      {/* Fixed Bottom Navigation */}
+      {/* Bottom Navigation */}
       <BottomNav />
     </View>
   );
@@ -127,21 +97,21 @@ export default Roadmap;
    ======================= */
 const styles = StyleSheet.create({
   screen: {
-    flex: 1, // ✅ کل صفحه
+    flex: 1,
   },
 
   scroll: {
-    flex: 1, // ✅ ScrollView هم قد صفحه
+    flex: 1,
   },
 
   content: {
-    flexGrow: 1, // ✅ حتی با محتوای کم هم فول‌اسکرین
+    flexGrow: 1,
     padding: 20,
-    paddingBottom: 180, // ✅ فاصله امن برای BottomNav
+    paddingBottom: 180,
   },
 
   header: {
-    marginBottom: 16,
+    marginBottom: 18,
   },
 
   title: {
