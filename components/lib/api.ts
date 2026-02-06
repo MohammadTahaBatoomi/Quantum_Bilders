@@ -33,18 +33,18 @@ const getDefaultApiBaseUrl = () => {
   if (__DEV__) {
     const host = getDevServerHost();
     if (host) {
-      return `http://${host}:3001/api`;
+      return `http://${host}:4000/api`;
     }
 
     if (Platform.OS === "android") {
-      return "http://10.0.2.2:3001/api";
+      return "http://185.239.3.82:4000/api";
     }
 
-    return "http://localhost:3001/api";
+    return "http://185.239.3.82:4000/api";
   }
 
   // Production fallback (prefer setting EXPO_PUBLIC_API_BASE_URL)
-  return "http://localhost:3001/api";
+  return "http://185.239.3.82:4000/api";
 };
 
 export const API_BASE_URL = getDefaultApiBaseUrl().replace(/\/$/, "");
@@ -162,6 +162,7 @@ export type ExamResult = {
   };
   createdAt: string;
 };
+
 
 export const submitExam = (payload: SubmitExamPayload) =>
   request<ExamResult>("/exams", {
