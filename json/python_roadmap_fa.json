@@ -1,0 +1,135 @@
+{
+  "meta": {
+    "title": "AI Tutor",
+    "by": "roadmap.sh",
+    "tagline": "همراه شخصی‌سازی‌شدهٔ شما برای یادگیری هر موضوع",
+    "topic": "پایتون"
+  },
+  "intro": "این نقشه راه به شما کمک می‌کند مفاهیم پایتون را یاد بگیرید، پیشرفت خود را دنبال کنید، منابع مناسب پیدا کنید و برای بازار کار آماده شوید.",
+  "sections": [
+    {
+      "title": "نقشه‌های راه مرتبط",
+      "items": [
+        "بک‌اند (Backend Roadmap)",
+        "DevOps Roadmap",
+        "هوش مصنوعی و علم داده (AI / Data Science)"
+      ]
+    },
+    {
+      "title": "یادگیری مبانی",
+      "items": [
+        "سینتکس پایه (Basic Syntax)",
+        "متغیرها و انواع داده (Variables and Data Types)",
+        "شرط‌ها (Conditionals)",
+        "تبدیل نوع (Type Casting)",
+        "مدیریت خطا و استثناها (Exceptions)",
+        "توابع و توابع داخلی (Functions, Builtin Functions)",
+        "حلقه‌ها (Loops)",
+        "کار با رشته‌ها (Working with Strings)",
+        "کار با فایل‌ها (File Handling)"
+      ]
+    },
+    {
+      "title": "ساختمان داده و الگوریتم",
+      "items": [
+        "لیست‌ها (Lists)",
+        "تاپل‌ها (Tuples)",
+        "ست‌ها (Sets)",
+        "دیکشنری‌ها (Dictionaries)",
+        "آرایه‌ها و لیست‌های پیوندی (Arrays and Linked Lists)",
+        "هیپ‌ها، پشته‌ها و صف‌ها (Heaps, Stacks and Queues)",
+        "هش‌مپ‌ها (HashMaps)",
+        "درخت جستجوی دودویی (Binary Search Tree)",
+        "بازگشت (Recursion)",
+        "الگوریتم‌های مرتب‌سازی (Sorting Algorithms)"
+      ]
+    },
+    {
+      "title": "پایتون پیشرفته",
+      "items": [
+        "ماژول‌ها (Modules)",
+        "لامبداها (Lambdas)",
+        "دکوراتورها (Decorators)",
+        "تکرارگرها (Iterators)",
+        "List Comprehensions",
+        "Generator Expressions",
+        "مدیر زمینه (Context Manager)",
+        "عبارات منظم (Regular Expressions / Regex)",
+        "پارادایم‌ها (Paradigms)",
+        "برنامه‌نویسی شی‌گرا (Object Oriented Programming)",
+        "کلاس‌ها (Classes)",
+        "ارث‌بری (Inheritance)",
+        "متدها (Methods)",
+        "کپسوله‌سازی (Encapsulation)",
+        "محدودهٔ متغیرها (Variable Scope)"
+      ]
+    },
+    {
+      "title": "یادگیری یک فریم‌ورک",
+      "children": [
+        {
+          "title": "همزمان (Synchronous)",
+          "items": ["Pyramid", "Plotly Dash"]
+        },
+        {
+          "title": "ناهمزمان (Asynchronous)",
+          "items": ["gevent", "aiohttp", "Tornado", "Sanic"]
+        },
+        {
+          "title": "همزمان + ناهمزمان",
+          "items": ["FastAPI", "Django", "Flask"]
+        },
+        {
+          "title": "هم‌روندی (Concurrency)",
+          "items": [
+            "GIL",
+            "ریسمان‌ها (Threading)",
+            "چندپردازشی (Multiprocessing)",
+            "ناهمزمانی (Asynchrony)"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "مدیریت بسته و محیط",
+      "items": [
+        "مدیرهای بسته (Package Managers)",
+        "PyPI",
+        "pip",
+        "conda",
+        "poetry",
+        "uv",
+        "pdm",
+        "pyproject.toml",
+        "پیکربندی (Configuration)",
+        "pipenv",
+        "virtualenv",
+        "pyenv",
+        "محیط‌ها (Environments)"
+      ]
+    },
+    {
+      "title": "تایپ ایستا (Static Typing)",
+      "items": ["Pydantic", "mypy", "pyright", "pyre"]
+    },
+    {
+      "title": "فرمت و کیفیت کد",
+      "items": ["ruff", "black", "yapf"]
+    },
+    {
+      "title": "مستندسازی (Documentation)",
+      "items": ["Sphinx"]
+    },
+    {
+      "title": "تست‌نویسی (Testing)",
+      "items": ["doctest", "pytest", "unittest / pyUnit", "tox"]
+    },
+    {
+      "title": "DevOps",
+      "items": [
+        "مفاهیم پایه DevOps و آماده‌سازی پروژه برای اجرا/استقرار",
+        "CI/CD (آشنایی کلی)"
+      ]
+    }
+  ]
+}
