@@ -62,7 +62,7 @@ We don’t just participate in competitions —
 <tr>
 <td align="center">
 <img src="assets/team/taha.jpg" width="120"/><br/>
-<b>Taha Batoomi</b><br/>
+<b>Mohammad Taha Batoomi</b><br/>
 🚀 <i>Team Lead</i><br/>
 Full Stack Developer
 </td>
