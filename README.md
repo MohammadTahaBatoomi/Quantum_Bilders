@@ -69,7 +69,7 @@ Full Stack Developer
 
 <td align="center">
 <img src="assets/team/reza.jpg" width="120"/><br/>
-<b>Reza Farajpour</b><br/>
+<b>Mohammad Reza Farajpour</b><br/>
     Network Enginier
 </td>
 
@@ -81,7 +81,7 @@ Full Stack Developer
 
 <td align="center">
 <img src="assets/team/mehdi.jpg" width="120"/><br/>
-<b>Mahdi Salimi Dana</b><br/>
+<b>Mohammad Mahdi Salimi Dana</b><br/>
  Prompt Engineer 
 </td>
 </tr>
