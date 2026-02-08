@@ -1,9 +1,11 @@
 # 🎬 NeuroCraft
 ## 🚀 AI‑Powered Digital Content & Mobile App Development Team
 
-> **"We don’t just build apps — we craft intelligence."**
+
 
 ---
+
+> **"The competition is over, and we've become the 3rd out of 50 teams, and of course the whole of Tehran. We're not going to give up on the project, but we're tired now."**
 
 ## 🎮 About the Event
 **The First AI‑Based Digital Content Creation Event**  
