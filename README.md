@@ -64,7 +64,7 @@ We don’t just participate in competitions —
 <img src="assets/team/taha.jpg" width="120"/><br/>
 <b>Taha Batoomi</b><br/>
 🚀 <i>Team Lead</i><br/>
-React Native Developer
+Full Stack Developer
 </td>
 
 <td align="center">
@@ -76,13 +76,13 @@ React Native Developer
 <td align="center">
 <img src="assets/team/ali.jpg" width="120"/><br/>
 <b>Amir Ali Hasanzadeh</b><br/>
-⚛️ React Native Developer
+    ui ux designer
 </td>
 
 <td align="center">
 <img src="assets/team/mehdi.jpg" width="120"/><br/>
 <b>Mahdi Salimi Dana</b><br/>
-🧠 Prompt Engineer & AI Developer
+ Prompt Engineer 
 </td>
 </tr>
 </table>
