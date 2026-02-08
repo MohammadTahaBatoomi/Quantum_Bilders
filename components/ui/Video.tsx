@@ -1,30 +1,13 @@
 import React from "react";
-import {
-  FlatList,
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import courseData from "../../json/python_course_aparat.json";
 import BottomNav from "./BottomNav";
 import { useTheme } from "./theme";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 
 const Video = () => {
   const { colors, text } = useTheme();
-  const router = useRouter();
-
-  const WebView =
-    (() => {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        return require("react-native-webview").WebView as any;
-      } catch {
-        return null;
-      }
-    })() ?? null;
 
   type CourseData = {
     about: {
@@ -43,9 +26,6 @@ const Video = () => {
   };
 
   const data = courseData as CourseData;
-  const [selectedId, setSelectedId] = React.useState<number>(
-    data.videos[0]?.id ?? 1
-  );
 
   const extractIframeSrc = (iframe: string) => {
     const match = iframe.match(/src="([^"]+)"/i);
@@ -59,185 +39,132 @@ const Video = () => {
     return `https://www.aparat.com/v/${hash}`;
   };
 
-  const selected = React.useMemo(
-    () => data.videos.find((v) => v.id === selectedId) ?? data.videos[0] ?? null,
-    [data.videos, selectedId]
-  );
-  const selectedSrc = selected ? extractIframeSrc(selected.iframe) : null;
-  const selectedWatchUrl = selectedSrc ? toAparatWatchUrl(selectedSrc) : null;
-  const courseTitle = data.about.course_title;
+  const openVideo = async (iframe: string) => {
+    const src = extractIframeSrc(iframe);
+    if (!src) return;
+    const url = toAparatWatchUrl(src);
+    await WebBrowser.openBrowserAsync(url);
+  };
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <FlatList
-        data={data.videos}
-        keyExtractor={(item) => String(item.id)}
-        showsVerticalScrollIndicator={false}
+      <ScrollView
+        style={styles.scroll}
         contentContainerStyle={styles.content}
-        ListHeaderComponent={
-          <View>
-            <View style={styles.header}>
-              <Text style={[text.title, styles.title]}>
-                {data.about.course_title}
-              </Text>
-              <Text style={[text.subtitle, styles.subtitle]}>
-                مدرس: {data.about.instructor}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={[text.title, styles.title]}>{data.about.course_title}</Text>
+          <Text style={[text.subtitle, styles.subtitle]}>
+            مدرس: {data.about.instructor}
+          </Text>
+        </View>
+
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.cardTitle, { color: colors.title }]}>
+            اطلاعات دوره
+          </Text>
+
+          <View style={styles.chips}>
+            <View style={[styles.chip, { backgroundColor: colors.primarySoft }]}>
+              <Text style={[styles.chipText, { color: colors.primary }]}>
+                {data.about.platform}
               </Text>
             </View>
-
-            <View
-              style={[
-                styles.playerCard,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.cardTitle, { color: colors.title }]}>
-                {selected?.title ?? "پخش"}
+            <View style={[styles.chip, { backgroundColor: colors.primarySoft }]}>
+              <Text style={[styles.chipText, { color: colors.primary }]}>
+                سطح: {data.about.level}
               </Text>
-
-              <View style={styles.playerFrame}>
-                {WebView && selectedSrc ? (
-                  <WebView
-                    source={{ uri: selectedSrc }}
-                    originWhitelist={["*"]}
-                    javaScriptEnabled
-                    domStorageEnabled
-                    allowsFullscreenVideo
-                    style={styles.webview}
-                  />
-                ) : (
-                  <View style={styles.playerFallback}>
-                    <Text style={[styles.fallbackText, { color: colors.subtitle }]}>
-                      برای نمایش ویدیو داخل اپ، پکیج{" "}
-                      <Text style={{ color: colors.title, fontWeight: "800" }}>
-                        react-native-webview
-                      </Text>{" "}
-                      را نصب کن.
-                    </Text>
-                    {selectedWatchUrl ? (
-                      <Pressable
-                        onPress={() => Linking.openURL(selectedWatchUrl)}
-                        style={({ pressed }) => [
-                          styles.fallbackButton,
-                          { backgroundColor: colors.primary },
-                          pressed && { opacity: 0.9 },
-                        ]}
-                      >
-                        <Text style={styles.fallbackButtonText}>
-                          باز کردن در آپارات
-                        </Text>
-                      </Pressable>
-                    ) : null}
-                  </View>
-                )}
-              </View>
-
-              <View style={styles.chips}>
-                <View
-                  style={[styles.chip, { backgroundColor: colors.primarySoft }]}
-                >
-                  <Text style={[styles.chipText, { color: colors.primary }]}>
-                    {data.about.platform}
-                  </Text>
-                </View>
-                <View
-                  style={[styles.chip, { backgroundColor: colors.primarySoft }]}
-                >
-                  <Text style={[styles.chipText, { color: colors.primary }]}>
-                    سطح: {data.about.level}
-                  </Text>
-                </View>
-                <View
-                  style={[styles.chip, { backgroundColor: colors.primarySoft }]}
-                >
-                  <Text style={[styles.chipText, { color: colors.primary }]}>
-                    تعداد قسمت‌ها: {data.about.parts_count}
-                  </Text>
-                </View>
-                <View
-                  style={[styles.chip, { backgroundColor: colors.primarySoft }]}
-                >
-                  <Text style={[styles.chipText, { color: colors.primary }]}>
-                    مدت کل: {data.about.total_duration}
-                  </Text>
-                </View>
-              </View>
-
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: "/exam/[course]" as any,
-                    params: { course: courseTitle },
-                  })
-                }
-                style={({ pressed }) => [
-                  styles.examButton,
-                  { backgroundColor: colors.primary },
-                  pressed && { opacity: 0.92 },
-                ]}
-              >
-                <Text style={styles.examButtonText}>رفتن به آزمون دوره</Text>
-              </Pressable>
             </View>
-
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.title }]}>
-                لیست قسمت‌ها
+            <View style={[styles.chip, { backgroundColor: colors.primarySoft }]}>
+              <Text style={[styles.chipText, { color: colors.primary }]}>
+                تعداد قسمت‌ها: {data.about.parts_count}
               </Text>
-              <Text style={[styles.sectionSubtitle, { color: colors.muted }]}>
-                روی هر قسمت بزن تا داخل اپ پخش شود.
+            </View>
+            <View style={[styles.chip, { backgroundColor: colors.primarySoft }]}>
+              <Text style={[styles.chipText, { color: colors.primary }]}>
+                مدت کل: {data.about.total_duration}
               </Text>
             </View>
           </View>
-        }
-        renderItem={({ item, index }) => {
-          const isActive = item.id === selectedId;
-          return (
-            <Pressable
-              onPress={() => setSelectedId(item.id)}
-              style={({ pressed }) => [
-                styles.videoCard,
-                { backgroundColor: colors.card, borderColor: colors.border },
-                isActive && { borderColor: colors.primary },
-                pressed && { opacity: 0.92 },
-              ]}
-            >
-              <View style={styles.videoTop}>
-                <Text style={[styles.videoIndex, { color: colors.muted }]}>
-                  {index + 1}
-                </Text>
-                <View style={styles.videoTextCol}>
-                  <Text
-                    numberOfLines={1}
-                    style={[styles.videoTitle, { color: colors.title }]}
-                  >
-                    {item.title}
-                  </Text>
-                  <Text style={[styles.videoMeta, { color: colors.subtitle }]}>
-                    مشاهده در {data.about.platform}
-                  </Text>
-                </View>
+        </View>
 
-                <View
-                  style={[
-                    styles.playPill,
-                    { backgroundColor: isActive ? colors.primary : colors.toggleBg },
-                  ]}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.title }]}>
+            لیست قسمت‌ها
+          </Text>
+          <Text style={[styles.sectionSubtitle, { color: colors.muted }]}>
+            برای تماشا، روی هر قسمت بزن.
+          </Text>
+        </View>
+
+        {data.videos.map((video, index) => (
+          <Pressable
+            key={video.id}
+            onPress={() => openVideo(video.iframe)}
+            style={({ pressed }) => [
+              styles.videoCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+              pressed && { opacity: 0.92 },
+            ]}
+          >
+            <View style={styles.videoTop}>
+              <Text style={[styles.videoIndex, { color: colors.muted }]}>
+                {index + 1}
+              </Text>
+              <View style={styles.videoTextCol}>
+                <Text
+                  numberOfLines={1}
+                  style={[styles.videoTitle, { color: colors.title }]}
                 >
-                  <Text
+                  {video.title}
+                </Text>
+                <Text style={[styles.videoMeta, { color: colors.subtitle }]}>
+                  مشاهده در {data.about.platform}
+                </Text>
+              </View>
+
+              <View style={[styles.playPill, { backgroundColor: colors.primary }]}>
+                <Text style={styles.playPillText}>تماشا</Text>
+              </View>
+            </View>
+            
+          </Pressable>
+          
+        ))}
+                  <View
                     style={[
-                      styles.playPillText,
-                      { color: isActive ? "#ffffff" : colors.muted },
+                      styles.actionCard,
+                      { backgroundColor: colors.card, borderColor: colors.border },
                     ]}
                   >
-                    {isActive ? "در حال پخش" : "پخش"}
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
-          );
-        }}
-      />
+                    <Text style={[styles.actionTitle, { color: colors.title }]}>
+                      شروع تست روزانه
+                    </Text>
+                    <Text style={[styles.actionSubtitle, { color: colors.subtitle }]}>
+                      چند تست کوتاه برای گرم شدن؟
+                    </Text>
+        
+                    <Pressable
+                      android_ripple={{ color: "rgba(255,255,255,0.2)" }}
+                       onPress={() => router.push("/exam/python")}
+                      style={({ pressed }) => [
+                        styles.primaryButton,
+                        {
+                          backgroundColor: colors.primary,
+                          opacity: pressed ? 0.9 : 1,
+                        },
+                      ]}
+                    >
+                      <Text style={styles.primaryButtonText}>شروع</Text>
+                    </Pressable>
+                  </View>
+      </ScrollView>
 
       <BottomNav />
     </View>
@@ -248,6 +175,173 @@ export default Video
 
 const styles = StyleSheet.create({
   screen: {
+    flex: 1,
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 120,
+  },
+  headerRow: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  headerText: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  title: {
+    marginTop : 20,
+    textAlign: "right",
+  },
+  subtitle: {
+    textAlign: "right",
+    marginBottom: 0,
+    marginLeft: 0,
+  },
+  cardsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 6,
+  },
+  card: {
+    width: "48%",
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+  },
+  cardLabel: {
+    fontSize: 12,
+    textAlign: "right",
+  },
+  cardValue: {
+    marginTop: 10,
+    fontSize: 18,
+    fontWeight: "700",
+    textAlign: "right",
+  },
+  actionCard: {
+    marginTop: 18,
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 16,
+  },
+  actionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "right",
+  },
+  actionSubtitle: {
+    marginTop: 6,
+    fontSize: 13,
+    textAlign: "right",
+  },
+  primaryButton: {
+    marginTop: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+  primaryButtonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  quickRow: {
+    marginTop: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  quickCard: {
+    width: "48%",
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+  },
+  quickTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    textAlign: "right",
+  },
+  quickSubtitle: {
+    marginTop: 6,
+    fontSize: 12,
+    textAlign: "right",
+  },
+  sectionHeader: {
+    marginTop: 18,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    textAlign: "right",
+  },
+  sectionSubtitle: {
+    marginTop: 4,
+    fontSize: 12,
+    textAlign: "right",
+  },
+  manageGrid: {
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+  },
+  manageCard: {
+    width: "48%",
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+    minHeight: 92,
+    justifyContent: "space-between",
+  },
+  manageTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    textAlign: "right",
+  },
+  manageSubtitle: {
+    marginTop: 6,
+    fontSize: 11,
+    textAlign: "right",
+  },
+  overviewCard: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: 14,
+  },
+  overviewSummary: {
+    fontSize: 12,
+    textAlign: "right",
+    marginBottom: 8,
+  },
+  overviewRow: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+  },
+  overviewLabel: {
+    fontSize: 12,
+    textAlign: "right",
+  },
+  overviewValue: {
+    fontSize: 13,
+    fontWeight: "700",
+    textAlign: "right",
+  },
+  overviewDivider: {
+    height: 1,
+    opacity: 0.7,
+  },
+  screen: {
+    flex: 1,
+  },
+
+  scroll: {
     flex: 1,
   },
 
@@ -277,71 +371,11 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
 
-  examButton: {
-    marginTop: 14,
-    borderRadius: 14,
-    paddingVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  examButtonText: {
-    color: "#ffffff",
-    fontWeight: "800",
-    fontSize: 14,
-  },
-
-  playerCard: {
-    borderWidth: 1,
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 14,
-  },
-
   cardTitle: {
     fontSize: 15,
     fontWeight: "800",
     marginBottom: 10,
     textAlign: "right",
-  },
-
-  playerFrame: {
-    width: "100%",
-    aspectRatio: 16 / 9,
-    borderRadius: 14,
-    overflow: "hidden",
-    marginBottom: 12,
-  },
-
-  webview: {
-    flex: 1,
-    backgroundColor: "transparent",
-  },
-
-  playerFallback: {
-    flex: 1,
-    padding: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-  },
-
-  fallbackText: {
-    fontSize: 12,
-    lineHeight: 18,
-    textAlign: "right",
-  },
-
-  fallbackButton: {
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-
-  fallbackButtonText: {
-    color: "#ffffff",
-    fontSize: 12,
-    fontWeight: "900",
   },
 
   chips: {
@@ -423,6 +457,7 @@ const styles = StyleSheet.create({
   },
 
   playPillText: {
+    color: "#ffffff",
     fontSize: 12,
     fontWeight: "900",
   },

@@ -1,582 +1,352 @@
-  import React, { useEffect, useMemo, useState } from "react";
-  import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
-  import { useRootNavigationState, useRouter } from "expo-router";
-  import { sharedStyles, useTheme } from "./theme";
-  import examData from "../../json/exam.json";
-  import { ApiError, clearExamDraft, getExamDraft, saveExamDraft, submitExam } from "../lib/api";
-  import { useUser } from "../state/UserContext";
+import React from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import BottomNav from "./BottomNav";
+import { useTheme } from "./theme";
+import examData from "../../json/exam.json";
 
-  const SPACING = 16;
-  const FIELD_TO_CATEGORY: Record<string, string> = {
-    "ریاضی فیزیک": "engineering_math",
-    "علوم تجربی": "medical",
-    "علوم انسانی": "humanities",
-    "شبکه و نرم افزار فنی حرفه ای": "computer_it",
-    "مکانیک فنی حرفه ای": "engineering_math",
+type ExamOptionKey = string;
+
+type ExamQuestion = {
+  id: number;
+  question: string;
+  options: Record<ExamOptionKey, string>;
+};
+
+type ExamData = {
+  test_title: string;
+  fields_mapping: Record<ExamOptionKey, string>;
+  questions: ExamQuestion[];
+};
+
+const Exam = () => {
+  const { colors, text } = useTheme();
+  const data = examData as ExamData;
+  const questions = React.useMemo(() => data.questions ?? [], [data.questions]);
+
+  const [index, setIndex] = React.useState(0);
+  const [answers, setAnswers] = React.useState<Record<string, ExamOptionKey>>(
+    {}
+  );
+
+  const isFinished = questions.length > 0 && index >= questions.length;
+  const current = !isFinished ? questions[index] ?? null : null;
+  const selected = current ? answers[String(current.id)] : undefined;
+
+  const onSelect = (key: ExamOptionKey) => {
+    if (!current) return;
+    const qid = String(current.id);
+    if (answers[qid]) return; // فقط یک‌بار
+    setAnswers((prev) => ({ ...prev, [qid]: key }));
   };
 
-  const Exam = ({ courseTitle }: { courseTitle?: string }) => {
-    const { colors, text } = useTheme();
-    const router = useRouter();
-    const rootState = useRootNavigationState();
-    const { user } = useUser();
-    const [index, setIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<string, string>>({});
-    const [error, setError] = useState("");
-    const [submitting, setSubmitting] = useState(false);
-    const [started, setStarted] = useState(false);
+  const onNext = () => {
+    if (isFinished) return;
+    if (!current) return;
+    if (!selected) return;
+    const next = index + 1;
+    if (next >= questions.length) setIndex(questions.length);
+    else setIndex(next);
+  };
 
-    useEffect(() => {
-      if (!rootState?.key) return;
-      if (user) return;
-      Alert.alert("خطا", "لطفاً ابتدا اطلاعات فردی را تکمیل کنید.");
-      // router.replace("/");
-    }, [rootState?.key, router, user]);
+  const onBack = () => {
+    if (index <= 0) return;
+    setIndex((prev) => prev - 1);
+  };
 
-    const selectedCategoryKey = useMemo(() => {
-      const field = user?.fieldOfStudy?.trim();
-      if (!field) return null;
-      return FIELD_TO_CATEGORY[field] ?? null;
-    }, [user?.fieldOfStudy]);
+  const onRestart = () => {
+    setAnswers({});
+    setIndex(0);
+  };
 
-    const selectedCategory = useMemo(() => {
-      if (!selectedCategoryKey) return null;
-      return examData.categories.find(
-        (category) => category.key === selectedCategoryKey
-      );
-    }, [selectedCategoryKey]);
+  const result = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const key of Object.keys(data.fields_mapping ?? {})) {
+      counts[key] = 0;
+    }
 
-    useEffect(() => {
-      setIndex(0);
-      setAnswers({});
-      setError("");
-      setStarted(false);
-    }, [selectedCategoryKey]);
+    for (const q of questions) {
+      const selectedKey = answers[String(q.id)];
+      if (!selectedKey) continue;
+      counts[selectedKey] = (counts[selectedKey] ?? 0) + 1;
+    }
 
-    const questions = useMemo(() => {
-      const sourceCategories = selectedCategory
-        ? [selectedCategory]
-        : examData.categories;
+    const totalAnswered = Object.keys(answers).length;
+    const entries = Object.entries(counts).map(([key, count]) => {
+      const pct = totalAnswered ? Math.round((count / totalAnswered) * 100) : 0;
+      return { key, count, pct, label: data.fields_mapping[key] ?? key };
+    });
 
-      const flat = sourceCategories.flatMap((category) =>
-        category.questions.map((question) => ({
-          ...question,
-          categoryKey: category.key,
-          categoryTitle: category.title,
-          questionKey: `${category.key}-${question.id}`,
-        }))
-      );
+    entries.sort((a, b) => b.count - a.count);
+    const topCount = entries[0]?.count ?? 0;
+    const top = entries.filter((e) => e.count === topCount && topCount > 0);
+    return { entries, totalAnswered, top };
+  }, [answers, data.fields_mapping, questions]);
 
-      for (let i = flat.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [flat[i], flat[j]] = [flat[j], flat[i]];
-      }
-
-      return flat;
-    }, [selectedCategory]);
-
-    useEffect(() => {
-      if (!user || !rootState?.key) return;
-      let isMounted = true;
-      getExamDraft(user.id)
-        .then((draft) => {
-          if (!isMounted) return;
-          if (!draft) return;
-          if (draft.categoryKey && selectedCategoryKey && draft.categoryKey !== selectedCategoryKey) {
-            return;
-          }
-          const restored = (draft.answers || []).reduce<Record<string, string>>((acc, item) => {
-            if (item.questionKey && item.choice) {
-              acc[item.questionKey] = item.choice;
-            }
-            return acc;
-          }, {});
-          setAnswers(restored);
-          const firstUnanswered = questions.findIndex(
-            (question) => !restored[question.questionKey]
-          );
-          if (firstUnanswered >= 0) {
-            setIndex(firstUnanswered);
-          } else if (questions.length > 0) {
-            setIndex(questions.length - 1);
-          }
-        })
-        .catch(() => undefined)
-        .finally(() => undefined);
-
-      return () => {
-        isMounted = false;
-      };
-    }, [questions.length, rootState?.key, selectedCategoryKey, user]);
-
-    const current = questions[index];
-    const total = questions.length;
-    const selected = current ? answers[current.questionKey] : "";
-    const hasDraft = Object.keys(answers).length > 0;
-
-    const optionList = current
-      ? (Object.entries(current.options) as Array<[string, string]>)
-      : [];
-
-    const onSelect = (key: string) => {
-      if (!current) return;
-      setError("");
-      setAnswers((prev) => ({
-        ...prev,
-        [current.questionKey]: key,
-      }));
-    };
-
-    const submitAnswers = async () => {
-      if (!user) return;
-
-      const payload = questions.map((question) => ({
-        questionKey: question.questionKey,
-        choice: answers[question.questionKey],
-      }));
-
-      setSubmitting(true);
-      try {
-        const result = await submitExam({
-          userId: user.id,
-          categoryKey: selectedCategoryKey || undefined,
-          answers: payload,
-        });
-
-        await clearExamDraft(user.id);
-
-        const topChoice =
-          result.analysis?.topChoice || result.result || "unknown";
-        const analysisText =
-          selectedCategory?.result_analysis?.[topChoice] ||
-          "نتیجه شما ثبت شد.";
-
-        const scoreText =
-          typeof result.score === "number" && typeof result.total === "number"
-            ? `امتیاز: ${result.score} از ${result.total}`
-            : "";
-
-        Alert.alert(
-          "پایان آزمون",
-          scoreText ? `${analysisText}\n${scoreText}` : analysisText
-        );
-      } catch (err) {
-        const message =
-          err instanceof ApiError
-            ? err.message
-            : "ارسال پاسخ‌ها با خطا مواجه شد.";
-        Alert.alert("خطا", message);
-      } finally {
-        setSubmitting(false);
-      }
-    };
-
-    const onNext = () => {
-      if (!current) return;
-      if (!selected) {
-        setError("لطفاً یکی از گزینه‌ها را انتخاب کنید.");
-        return;
-      }
-
-      if (index < total - 1) {
-        const nextIndex = index + 1;
-        const nextAnswers = {
-          ...answers,
-          [current.questionKey]: selected,
-        };
-        setIndex(nextIndex);
-        setError("");
-        if (user) {
-          saveExamDraft({
-            userId: user.id,
-            categoryKey: selectedCategoryKey || undefined,
-            answers: Object.entries(nextAnswers).map(([questionKey, choice]) => ({
-              questionKey,
-              choice,
-            })),
-            progressIndex: nextIndex,
-            total,
-          }).catch(() => undefined);
-        }
-        return;
-      }
-
-      if (submitting) return;
-      void submitAnswers();
-    };
-
-    const onBack = () => {
-      if (index === 0) return;
-      setIndex((prev) => prev - 1);
-      setError("");
-    };
+  const renderOption = (key: ExamOptionKey, label: string) => {
+    if (!current) return null;
+    const isSelected = selected === key;
+    const hasAnswered = !!selected;
 
     return (
-      <View
-        style={[
-          sharedStyles.centered,
-          { backgroundColor: colors.background, paddingTop: 24 },
+      <Pressable
+        key={key}
+        disabled={hasAnswered}
+        onPress={() => onSelect(key)}
+        style={({ pressed }) => [
+          styles.option,
+          {
+            backgroundColor: isSelected ? colors.primarySoft : colors.card,
+            borderColor: isSelected ? colors.primary : colors.border,
+            opacity: hasAnswered && !isSelected ? 0.65 : 1,
+          },
+          pressed && !hasAnswered && { opacity: 0.92 },
         ]}
       >
-        <View style={styles.headerRow}>
-          <Image
-            source={require("../../assets/images/image (1).png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.headerText}>
-            <Text style={text.title}>
-              {courseTitle ? `آزمون ${courseTitle}` : "ازمون استعداد یابی"}
+        <View style={styles.optionRow}>
+          <View style={[styles.optionKey, { backgroundColor: colors.toggleBg }]}>
+            <Text style={[styles.optionKeyText, { color: colors.title }]}>
+              {key}
             </Text>
           </View>
+          <Text style={[styles.optionText, { color: colors.text }]}>{label}</Text>
         </View>
-
-
-        {!started && (
-          <View
-            style={[
-              styles.introCard,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
-            <Text style={[styles.introTitle, { color: colors.title }]}>
-              قبل از شروع
-            </Text>
-            <Text style={[styles.introBody, { color: colors.subtitle }]}>
-              {selectedCategory
-                ? `آزمون اختصاصی ${selectedCategory.title} آماده است.`
-                : "آزمون استعدادسنجی آماده است."}
-            </Text>
-            <Text style={[styles.introMeta, { color: colors.muted }]}>
-              تعداد سوالات: {total}
-            </Text>
-
-            <View style={styles.introList}>
-              <Text style={[styles.introItem, { color: colors.text }]}>
-                • {examData.instruction}
-              </Text>
-              <Text style={[styles.introItem, { color: colors.text }]}>
-                • سوالات به‌صورت تصادفی نمایش داده می‌شوند.
-              </Text>
-              <Text style={[styles.introItem, { color: colors.text }]}>
-                • می‌توانید با دکمه قبلی به سوال قبل برگردید.
-              </Text>
-              <Text style={[styles.introItem, { color: colors.text }]}>
-                • نتیجه در پایان نمایش داده می‌شود.
-              </Text>
-            </View>
-
-            <Pressable
-              android_ripple={{ color: "rgba(255,255,255,0.2)" }}
-              style={({ pressed }) => [
-                styles.startButton,
-                {
-                  backgroundColor: colors.primary,
-                  opacity: pressed ? 0.9 : 1,
-                },
-              ]}
-              onPress={() => setStarted(true)}
-            >
-              <Text style={styles.startButtonText}>
-                {hasDraft ? "ادامه آزمون" : "شروع آزمون"}
-              </Text>
-            </Pressable>
-          </View>
-        )}
-
-        {started && !!current && (
-          <>
-            <View style={[styles.card, { backgroundColor: colors.card }]}>
-              <Text style={[styles.counter, { color: colors.muted }]}>
-                سوال {index + 1} از {total}
-              </Text>
-
-              <Text style={[styles.question, { color: colors.title }]}>
-                {current.question}
-              </Text>
-
-              <View style={styles.optionsGrid}>
-                {optionList.map(([key, label]) => {
-                  const isSelected = selected === key;
-                  return (
-                    <Pressable
-                      key={key}
-                      style={({ pressed }) => [
-                        styles.option,
-                        {
-                          backgroundColor: isSelected
-                            ? colors.primary
-                            : colors.background,
-                          borderColor: isSelected
-                            ? colors.primary
-                            : colors.border,
-                          transform: [{ scale: pressed ? 0.99 : 1 }],
-                        },
-                      ]}
-                      onPress={() => onSelect(key)}
-                    >
-                      <Text
-                        style={[
-                          styles.optionText,
-                          { color: isSelected ? "#ffffff" : colors.text },
-                        ]}
-                      >
-                        {label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              {!!error && (
-                <Text style={[styles.errorText, { color: colors.error }]}>
-                  {error}
-                </Text>
-              )}
-
-              <View style={styles.actionsRow}>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.backButton,
-                    {
-                      backgroundColor: colors.background,
-                      borderColor: colors.border,
-                      opacity: index === 0 ? 0.5 : pressed ? 0.9 : 1,
-                    },
-                  ]}
-                  onPress={onBack}
-                  disabled={index === 0}
-                >
-                  <Text style={[styles.backText, { color: colors.text }]}>
-                    قبلی
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.submitButton,
-                    {
-                      backgroundColor: colors.primary,
-                      transform: [{ scale: pressed ? 0.98 : 1 }],
-                      opacity: submitting ? 0.7 : 1,
-                    },
-                  ]}
-                  onPress={onNext}
-                  disabled={submitting}
-                >
-                  <Text style={styles.submitText}>
-                    {submitting
-                      ? "در حال ارسال..."
-                      : index === total - 1
-                        ? "پایان آزمون"
-                        : "ثبت و بعدی"}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          </>
-        )}
-      </View>
+      </Pressable>
     );
   };
 
-  export default Exam;
+  return (
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={[text.title, styles.title]}>{data.test_title}</Text>
+          <Text style={[text.subtitle, styles.subtitle]}>
+            {isFinished
+              ? "نتیجه آزمون"
+              : `سوال ${Math.min(index + 1, questions.length)} از ${questions.length}`}
+          </Text>
+        </View>
 
- const styles = StyleSheet.create({
-  /* ---------- Header ---------- */
-  headerRow: {
-    width: "100%",
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 20,
-  },
+        {questions.length === 0 ? (
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.title }]}>
+              سوالی پیدا نشد
+            </Text>
+            <Text style={[styles.cardBody, { color: colors.subtitle }]}>
+              فایل `json/exam.json` خالی است یا فرمتش درست نیست.
+            </Text>
+          </View>
+        ) : isFinished ? (
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.title }]}>
+              نتیجه نهایی
+            </Text>
 
-  headerText: {
-    flex: 1,
-    alignItems: "flex-end",
-    paddingRight: 12,
-  },
+            {result.top.length ? (
+              <View style={styles.topBox}>
+                <Text style={[styles.topTitle, { color: colors.title }]}>
+                  پیشنهاد مسیر:
+                </Text>
+                <Text style={[styles.topValue, { color: colors.primary }]}>
+                  {result.top.map((t) => t.label).join(" / ")}
+                </Text>
+              </View>
+            ) : (
+              <Text style={[styles.cardBody, { color: colors.subtitle }]}>
+                هنوز به هیچ سوالی جواب ندادی.
+              </Text>
+            )}
 
-  logo: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
-    marginBottom: 4,
-  },
+            <Text style={[styles.meta, { color: colors.muted }]}>
+              تعداد پاسخ‌ها: {result.totalAnswered} از {questions.length}
+            </Text>
 
-  /* ---------- Intro Card ---------- */
-  introCard: {
-    width: "100%",
-    borderRadius: 24,
-    padding: SPACING + 6,
-    borderWidth: 1,
-    marginTop: 8,
+            <View style={styles.breakdown}>
+              {result.entries.map((item) => (
+                <View
+                  key={item.key}
+                  style={[
+                    styles.breakItem,
+                    { borderColor: colors.border, backgroundColor: colors.input },
+                  ]}
+                >
+                  <Text style={[styles.breakLabel, { color: colors.title }]}>
+                    {item.label}
+                  </Text>
+                  <Text style={[styles.breakPct, { color: colors.subtitle }]}>
+                    {item.pct}% ({item.count})
+                  </Text>
+                </View>
+              ))}
+            </View>
 
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 4,
-  },
+            <View style={styles.actionsRow}>
+              <Pressable
+                onPress={onRestart}
+                style={({ pressed }) => [
+                  styles.primaryButton,
+                  { backgroundColor: colors.primary },
+                  pressed && { opacity: 0.92 },
+                ]}
+              >
+                <Text style={styles.primaryButtonText}>شروع دوباره</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : current ? (
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.question, { color: colors.title }]}>
+              {current.question}
+            </Text>
 
-  introTitle: {
-    fontSize: 20,
-    fontWeight: "900",
-    textAlign: "right",
-    marginBottom: 10,
-    letterSpacing: -0.3,
-  },
+            <View style={styles.options}>
+              {Object.entries(current.options).map(([key, label]) =>
+                renderOption(key, label)
+              )}
+            </View>
 
-  introBody: {
-    fontSize: 14,
-    lineHeight: 22,
-    textAlign: "right",
-    marginBottom: 12,
-    fontWeight: "500",
-  },
+            {selected ? (
+              <Text style={[styles.feedback, { color: colors.success }]}>
+                انتخابت ثبت شد.
+              </Text>
+            ) : (
+              <Text style={[styles.hint, { color: colors.muted }]}>
+                یکی از گزینه‌ها را انتخاب کن (فقط یک‌بار).
+              </Text>
+            )}
 
-  introMeta: {
-    fontSize: 12,
-    textAlign: "right",
-    marginBottom: 14,
-    opacity: 0.85,
-    fontWeight: "600",
-  },
+            <View style={styles.actionsRow}>
+              <Pressable
+                disabled={index === 0}
+                onPress={onBack}
+                style={({ pressed }) => [
+                  styles.secondaryButton,
+                  {
+                    borderColor: colors.border,
+                    backgroundColor: colors.card,
+                    opacity: index === 0 ? 0.5 : 1,
+                  },
+                  pressed && index !== 0 && { opacity: 0.92 },
+                ]}
+              >
+                <Text style={[styles.secondaryButtonText, { color: colors.title }]}>
+                  قبلی
+                </Text>
+              </Pressable>
 
-  introList: {
-    width: "100%",
-    marginBottom: 22,
-  },
+              <Pressable
+                disabled={!selected}
+                onPress={onNext}
+                style={({ pressed }) => [
+                  styles.primaryButton,
+                  { backgroundColor: colors.primary, opacity: !selected ? 0.5 : 1 },
+                  pressed && selected && { opacity: 0.92 },
+                ]}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {index === questions.length - 1 ? "پایان" : "بعدی"}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+      </ScrollView>
 
-  introItem: {
-    fontSize: 13,
-    lineHeight: 22,
-    textAlign: "right",
-    marginBottom: 6,
-    fontWeight: "500",
-  },
+      <BottomNav />
+    </View>
+  );
+};
 
-  /* ---------- Start Button ---------- */
-  startButton: {
-    width: "100%",
-    paddingVertical: 16,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
+export default Exam;
 
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
-  },
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  scroll: { flex: 1 },
+  content: { flexGrow: 1, padding: 20, paddingBottom: 180 },
 
-  startButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: 0.4,
-  },
+  header: { marginBottom: 14 },
+  title: { textAlign: "right" },
+  subtitle: { textAlign: "right", marginBottom: 0 },
 
-  /* ---------- Exam Card ---------- */
   card: {
-    width: "100%",
-    borderRadius: 22,
-    padding: SPACING + 2,
-    marginBottom: 16,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 5,
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 14,
   },
-
-  counter: {
-    fontSize: 12,
-    marginBottom: 8,
-    opacity: 0.7,
-    textAlign: "right",
-  },
+  cardTitle: { fontSize: 16, fontWeight: "900", textAlign: "right" },
+  cardBody: { marginTop: 8, fontSize: 13, lineHeight: 20, textAlign: "right" },
 
   question: {
-    fontSize: 19,
-    fontWeight: "800",
+    fontSize: 14,
+    fontWeight: "900",
     textAlign: "right",
-    width: "100%",
-    marginBottom: SPACING,
-    lineHeight: 28,
-    letterSpacing: -0.2,
+    lineHeight: 22,
   },
 
-  optionsGrid: {
-    width: "100%",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-
-  option: {
-    width: "48%",
-    minHeight: 64,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    marginBottom: 14,
+  options: { marginTop: 12, gap: 10 },
+  option: { borderWidth: 1, borderRadius: 14, padding: 12 },
+  optionRow: { flexDirection: "row-reverse", alignItems: "center", gap: 10 },
+  optionKey: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: "center",
     justifyContent: "center",
   },
+  optionKeyText: { fontWeight: "900" },
+  optionText: { flex: 1, textAlign: "right", lineHeight: 20 },
 
-  optionText: {
-    fontSize: 14,
-    textAlign: "right",
-    lineHeight: 20,
-    fontWeight: "600",
-  },
-
-  errorText: {
-    width: "100%",
-    fontSize: 12,
-    marginTop: 4,
-    marginBottom: 10,
-    textAlign: "right",
-    fontWeight: "600",
-  },
+  hint: { marginTop: 12, textAlign: "right", fontSize: 12 },
+  feedback: { marginTop: 12, textAlign: "right", fontSize: 13, fontWeight: "900" },
 
   actionsRow: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: SPACING,
+    marginTop: 14,
+    flexDirection: "row-reverse",
+    gap: 10,
   },
-
-  backButton: {
-    width: "40%",
-    paddingVertical: 14,
-    borderRadius: 16,
+  primaryButton: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  primaryButtonText: { color: "#ffffff", fontWeight: "900" },
+  secondaryButton: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    alignItems: "center",
   },
+  secondaryButtonText: { fontWeight: "900" },
 
-  backText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-
-  submitButton: {
-    width: "56%",
-    paddingVertical: 14,
-    borderRadius: 16,
-    alignItems: "center",
-  },
-
-  submitText: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 0.3,
-  },
+  topBox: { marginTop: 10 },
+  topTitle: { textAlign: "right", fontSize: 13, fontWeight: "900" },
+  topValue: { marginTop: 6, textAlign: "right", fontSize: 18, fontWeight: "900" },
+  meta: { marginTop: 10, textAlign: "right", fontSize: 12 },
+  breakdown: { marginTop: 12, gap: 10 },
+  breakItem: { borderWidth: 1, borderRadius: 14, padding: 12, flexDirection: "row-reverse", justifyContent: "space-between" },
+  breakLabel: { fontWeight: "900" },
+  breakPct: { fontWeight: "700" },
 });
-

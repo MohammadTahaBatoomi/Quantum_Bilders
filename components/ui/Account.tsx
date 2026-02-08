@@ -7,13 +7,19 @@ import {
   TextInput,
   Pressable,
   StatusBar,
+  Alert,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { useTheme } from "./theme";
 import ThemeToggle from "./ThemeToggle";
 import BottomNav from "./BottomNav";
+import { useUser } from "../state/UserContext";
+import { storeUser } from "../state/authStorage";
 
 const Account = () => {
   const { colors, text, mode } = useTheme();
+  const router = useRouter();
+  const { setUser } = useUser();
 
   const [fullName, setFullName] = useState("محمد طاها");
   const [field, setField] = useState("مهندسی کامپیوتر");
@@ -22,11 +28,24 @@ const Account = () => {
     console.log("Saved:", { fullName, field });
   };
 
+  const onLogout = () => {
+    Alert.alert("خروج از حساب", "می‌خوای از حساب کاربری خارج بشی؟", [
+      { text: "انصراف", style: "cancel" },
+      {
+        text: "خروج",
+        style: "destructive",
+        onPress: () => {
+          storeUser(null).catch(() => {});
+          setUser(null);
+          router.replace("/auth/phone");
+        },
+      },
+    ]);
+  };
+
   return (
     <>
-      <StatusBar
-        barStyle={mode === "dark" ? "light-content" : "dark-content"}
-      />
+
 
       <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <ScrollView
@@ -156,6 +175,19 @@ const Account = () => {
           >
             <Text style={styles.saveText}>ذخیره تغییرات</Text>
           </Pressable>
+
+          <Pressable
+            onPress={onLogout}
+            style={({ pressed }) => [
+              styles.logoutBtn,
+              {
+                borderColor: colors.border,
+                opacity: pressed ? 0.9 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.logoutText, { color: colors.title }]}>خروج از حساب</Text>
+          </Pressable>
         </ScrollView>
 
         <BottomNav />
@@ -241,6 +273,19 @@ const styles = StyleSheet.create({
 
   saveText: {
     color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  logoutBtn: {
+    marginTop: 10,
+    borderRadius: 18,
+    paddingVertical: 14,
+    alignItems: "center",
+    borderWidth: 1,
+  },
+
+  logoutText: {
     fontSize: 15,
     fontWeight: "700",
   },
