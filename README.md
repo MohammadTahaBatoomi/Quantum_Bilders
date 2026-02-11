@@ -1,3 +1,12 @@
+## Project Status
+
+This project is currently under **limited active development** due to my focus on other projects.
+
+It is not abandoned and will continue to receive essential maintenance when necessary.  
+Contributions, issues, and pull requests are welcome.
+
+
+
 # 🎬 NeuroCraft
 ## 🚀 AI‑Powered Digital Content & Mobile App Development Team
 
